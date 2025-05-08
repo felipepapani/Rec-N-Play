@@ -2,50 +2,280 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Formulário para Monday.com</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Responsivo -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro Completo de Atividade</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; }
+    form { display: grid; gap: 1rem; }
+    label { display: flex; flex-direction: column; }
+    input, textarea, select, button { padding: .4rem; font-size: 1rem; }
+    button { width: fit-content; cursor: pointer; }
+    .char-counter { font-size: .9rem; color: #666; }
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
-  <h2>Cadastro de Novo Item no Monday</h2>
-  <form id="mondayForm">
-    <label for="name">Nome:</label>
-    <input type="text" id="name" name="name" required><br><br>
+  <h1>Nova Atividade</h1>
+  <form id="activityForm">
 
-    <label for="email">E-mail:</label>
-    <input type="email" id="email" name="email" required><br><br>
+    <label>
+      Nome da Atividade:
+      <input type="text" id="text_mkqrhjas" required>
+    </label>
 
-    <button type="submit">Enviar</button>
+    <label>
+      Formato de Atividade:
+      <select id="short_textossh5v4j" required>
+        <option value="">-- selecione --</option>
+        <option>Apresentação artística</option>
+        <option>Apresentação de trabalhos</option>
+        <option>Atendimentos</option>
+        <option>Campeonato</option>
+        <option>Contação de História</option>
+        <option>Cortejo</option>
+        <option>Demonstração</option>
+        <option>Desfile de moda</option>
+        <option>Exibição audiovisual</option>
+        <option>Experiência</option>
+        <option>Exposição artística</option>
+        <option>Feira</option>
+        <option>Hackathon</option>
+        <option>Intervenção urbana</option>
+        <option>Mentoria</option>
+        <option>Mesa redonda</option>
+        <option>Minicurso</option>
+        <option>Oficina</option>
+        <option>Palestra</option>
+        <option>Pitchs</option>
+        <option>Revisão de portfólio</option>
+        <option>Roda de conversa</option>
+        <option>Rodada de negócios</option>
+        <option>Show</option>
+        <option>Talk Show</option>
+        <option>Visitas/ percursos guiados</option>
+        <option>Workshop</option>
+      </select>
+    </label>
+
+    <label id="daysLabel" class="hidden">
+      Dias (1 a 4):
+      <select id="short_textb7obn15q">
+        <option value="">-- selecione --</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+    </label>
+
+    <label>
+      Duração (text_mkqrvnnp):
+      <input type="text" id="text_mkqrvnnp">
+    </label>
+
+    <label>
+      Descrição (max 700 caracteres):
+      <textarea id="long_text_mkqr5e1x" rows="3" maxlength="700"></textarea>
+      <div class="char-counter" id="descCounter">0/700</div>
+    </label>
+
+    <label>
+      Tema Principal:
+      <select id="text_mkqrwawz">
+        <option value="">-- selecione --</option>
+        <option>Artes e Cultura</option>
+        <option>Comunicação</option>
+        <option>Dados e Segurança Digital</option>
+        <option>Desenvolvimento de Software e Cloud</option>
+        <option>Diversidade e Inclusão</option>
+        <option>Empreendedorismo e Inovação</option>
+        <option>Games e Design</option>
+        <option>Gente e Gestão</option>
+        <option>Governança</option>
+        <option>Inteligência Artificial, Tecnologias Imersivas e Metaverso</option>
+        <option>Investimentos</option>
+        <option>Política e Cidadania</option>
+        <option>Processos e Técnicas de Mercado</option>
+        <option>Setores Tech</option>
+        <option>Simulação e Modelagem</option>
+        <option>Sustentabilidade</option>
+        <option>Tecnologias de Conectividade, Robótica e Computação Avançada</option>
+      </select>
+    </label>
+
+    <label>
+      Tema Secundário:
+      <select id="text_mkqrth67">
+        <option value="">-- selecione --</option>
+        <option>Artes e Cultura</option>
+        <option>Comunicação</option>
+        <option>Dados e Segurança Digital</option>
+        <option>Desenvolvimento de Software e Cloud</option>
+        <option>Diversidade e Inclusão</option>
+        <option>Empreendedorismo e Inovação</option>
+        <option>Games e Design</option>
+        <option>Gente e Gestão</option>
+        <option>Governança</option>
+        <option>Inteligência Artificial, Tecnologias Imersivas e Metaverso</option>
+        <option>Investimentos</option>
+        <option>Política e Cidadania</option>
+        <option>Processos e Técnicas de Mercado</option>
+        <option>Setores Tech</option>
+        <option>Simulação e Modelagem</option>
+        <option>Sustentabilidade</option>
+        <option>Tecnologias de Conectividade, Robótica e Computação Avançada</option>
+      </select>
+    </label>
+
+    <label>
+      Subtema Principal:
+      <select id="text_mkqrm18v">
+        <option value="">-- selecione --</option>
+        <option>Artes e Cultura</option>
+        <option>Comunicação</option>
+        <option>Dados e Segurança Digital</option>
+        <option>Desenvolvimento de Software e Cloud</option>
+        <option>Diversidade e Inclusão</option>
+        <option>Empreendedorismo e Inovação</option>
+        <option>Games e Design</option>
+        <option>Gente e Gestão</option>
+        <option>Governança</option>
+        <option>Inteligência Artificial, Tecnologias Imersivas e Metaverso</option>
+        <option>Investimentos</option>
+        <option>Política e Cidadania</option>
+        <option>Processos e Técnicas de Mercado</option>
+        <option>Setores Tech</option>
+        <option>Simulação e Modelagem</option>
+        <option>Sustentabilidade</option>
+        <option>Tecnologias de Conectividade, Robótica e Computação Avançada</option>
+      </select>
+    </label>
+
+    <label>
+      Subtema Secundário:
+      <select id="text_mkqrfjz3">
+        <option value="">-- selecione --</option>
+        <option>Artes e Cultura</option>
+        <option>Comunicação</option>
+        <option>Dados e Segurança Digital</option>
+        <option>Desenvolvimento de Software e Cloud</option>
+        <option>Diversidade e Inclusão</option>
+        <option>Empreendedorismo e Inovação</option>
+        <option>Games e Design</option>
+        <option>Gente e Gestão</option>
+        <option>Governança</option>
+        <option>Inteligência Artificial, Tecnologias Imersivas e Metaverso</option>
+        <option>Investimentos</option>
+        <option>Política e Cidadania</option>
+        <option>Processos e Técnicas de Mercado</option>
+        <option>Setores Tech</option>
+        <option>Simulação e Modelagem</option>
+        <option>Sustentabilidade</option>
+        <option>Tecnologias de Conectividade, Robótica e Computação Avançada</option>
+      </select>
+    </label>
+
+    <label>
+      público:
+      <select id="text_mkqr6nqa">
+        <option value="">-- selecione --</option>
+        <option>especialista no tema</option>
+        <option>geral</option>
+        <option>negócios</option>
+        <option>infantil</option>
+        <option>adolescentes</option>
+        <option>apenas mulheres</option>
+      </select>
+    </label>
+
+    <label id="maxGuestsLabel" class="hidden">
+      max público:
+      <select id="text_mkqrjadb">
+        <option value="">-- selecione --</option>
+        <option value="10">10</option>
+        <option value="15">15</option>
+        <option value="20">20</option>
+        <option value="25">25</option>
+        <option value="30">30</option>
+        <option value="35">35</option>
+        <option value="40">40</option>
+        <option value="45">45</option>
+        <option value="50">50</option>
+        <option value="Sem restrição">Sem restrição</option>
+      </select>
+    </label>
+
+     <!-- Restrição de faixa etária -->
+     <label>
+        Restrição de faixa etária (text_mkqrrpq3):
+        <select id="text_mkqrrpq3" required>
+          <option value="">-- selecione --</option>
+          <option value="Não">Não</option>
+          <option value="Sim">Sim</option>
+        </select>
+      </label>
+      <label id="ageRangeLabel" class="hidden">
+        Informe a faixa etária (text_mkqrrpq3_range):
+        <input type="text" id="text_mkqrrpq3_range" placeholder="ex: 18-25">
+      </label>
+  
+
+    <label>
+      Informações extras (max 700 caracteres):
+      <textarea id="text_mkqrqmfw" rows="2" maxlength="700"></textarea>
+      <div class="char-counter" id="extrasCounter">0/700</div>
+    </label>
+
+   
+    <label>
+      Convidados (muliselect):
+      <select id="board_relation_mkqr6b1t" multiple size="6"></select>
+    </label>
+
+    <button type="submit">Criar Atividade</button>
   </form>
 
   <script>
-    // aqui vai a URL do seu Worker (substitua pela sua)
-    const WORKER_URL = "https://plain-butterfly-7001.programacao-e50.workers.dev/";
+    const WORKER_URL = "https://<seu-subdomínio>.workers.dev";
   
-    document.getElementById("mondayForm")
-      .addEventListener("submit", async function(e) {
+    // 1) Carrega convidados
+    async function loadGuests() {
+      const res = await fetch(WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "loadGuests", payload: {} })
+      });
+      const json = await res.json();
+      json.data.boards[0].items_page.items.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = item.name;
+        document.getElementById("board_relation_mkqr6b1t")
+                .appendChild(opt);
+      });
+    }
+    loadGuests();
+  
+    // 2) Envia o formulário
+    document.getElementById("activityForm")
+      .addEventListener("submit", async e => {
         e.preventDefault();
+        // ...coleta todos os campos em `vals`...
+        const vals = { /* seu objeto com text_mkqrhjas, etc. */ };
   
-        // pega os valores do formulário
-        const name  = document.getElementById("name").value;
-        const email = document.getElementById("email").value;
-  
-        // envia para o seu Worker, que faz o create_item no Monday
-        try {
-          const res = await fetch(WORKER_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, email })
-          });
-          const json = await res.json();
-  
-          if (res.ok && json.data?.create_item) {
-            alert("Item criado com sucesso! ID: " + json.data.create_item.id);
-          } else {
-            console.error(json);
-            alert("Erro: " + JSON.stringify(json.errors || json));
-          }
-        } catch (err) {
-          console.error(err);
-          alert("Falha na requisição: " + err.message);
+        const res = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "createItem", payload: vals })
+        });
+        const json = await res.json();
+        if (json.data?.create_item) {
+          alert("Criado! ID: " + json.data.create_item.id);
+        } else {
+          alert("Erro: " + JSON.stringify(json.errors || json));
         }
     });
   </script>
