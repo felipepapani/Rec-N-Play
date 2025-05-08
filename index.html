@@ -17,59 +17,36 @@
   </form>
 
   <script>
-    const BOARD_ID = 9099133664;          // só o número, sem aspas
-    const API_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjUxMDE4MjQ0MywiYWFpIjoxMSwidWlkIjo3NTgzNDY5NywiaWFkIjoiMjAyNS0wNS0wOFQxMzo1MTowNS4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6Mjk0MzY2MjksInJnbiI6InVzZTEifQ.ejjsvv1DyreQahzZFKg3_qoPLZoWCUF_rrylG03yxQ0";   // sua chave de API
-
-    document.getElementById("mondayForm").addEventListener("submit", async function(event) {
-      event.preventDefault();
-
-      const name  = document.getElementById("name").value.replace(/"/g, '\\"');
-      const email = document.getElementById("email").value.replace(/"/g, '\\"');
-
-      // 1) Monta o objeto
-      const colObj = {
-        short_textossh5v4j: name,
-        short_textb7obn15q: email
-      };
-
-      // 2) Stringify e escapa as aspas
-      const colJson = JSON.stringify(colObj);
-      const escaped = colJson.replace(/"/g, '\\"');
-
-      // 3) Monta a query GraphQL no estilo “one‐liner”
-      const query = `
-        mutation {
-          create_item(
-            board_id: ${BOARD_ID},
-            item_name: "${name}",
-            column_values: "${escaped}"
-          ) {
-            id
+    // aqui vai a URL do seu Worker (substitua pela sua)
+    const WORKER_URL = "https://plain-butterfly-7001.programacao-e50.workers.dev/";
+  
+    document.getElementById("mondayForm")
+      .addEventListener("submit", async function(e) {
+        e.preventDefault();
+  
+        // pega os valores do formulário
+        const name  = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+  
+        // envia para o seu Worker, que faz o create_item no Monday
+        try {
+          const res = await fetch(WORKER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email })
+          });
+          const json = await res.json();
+  
+          if (res.ok && json.data?.create_item) {
+            alert("Item criado com sucesso! ID: " + json.data.create_item.id);
+          } else {
+            console.error(json);
+            alert("Erro: " + JSON.stringify(json.errors || json));
           }
+        } catch (err) {
+          console.error(err);
+          alert("Falha na requisição: " + err.message);
         }
-      `;
-
-      try {
-        const res = await fetch("https://api.monday.com/v2", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": API_TOKEN
-          },
-          body: JSON.stringify({ query })
-        });
-
-        const json = await res.json();
-        if (json.data && json.data.create_item) {
-          alert("Item criado com sucesso! ID: " + json.data.create_item.id);
-        } else {
-          console.error(json);
-          alert("Erro ao criar item: " + JSON.stringify(json.errors || json));
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Falha na requisição: " + err.message);
-      }
     });
   </script>
 </body>
