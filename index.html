@@ -344,7 +344,7 @@
     ul.innerHTML = '';
     list.forEach(g => {
       const li = document.createElement('li');
-      li.innerHTML = `<strong>${g.name}</strong><br/><small>${g.cargo} @ ${g.empresa}</small>`;
+      li.innerHTML = `<strong>${g.name}</strong><br/><small>${g.cargo} - ${g.empresa}</small>`;
       li.onclick = () => {
         selectedGuests.push(g);
         closeGuestModal();
