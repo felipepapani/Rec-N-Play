@@ -270,15 +270,14 @@
 
   // Carrega os convidados do board de convidados, incluindo cargo e empresa
   async function loadGuests() {
-    // Substitua "cargo_column_id" e "empresa_column_id" pelos IDs reais dessas colunas no seu board de convidados
     const q = `query {
       boards(ids:[${GUEST_BOARD_ID}]) {
         items_page(limit:100) {
           items {
             id
-            name
-            column_values(ids:["cargo_column_id","empresa_column_id"]) {
-              id text
+            column_values(ids:["text_mkqreer2","text_mkqry55n","text_mkqrghw1"]) {
+              id
+              text
             }
           }
         }
@@ -286,12 +285,15 @@
     }`;
     try {
       const data = await mondayMutation(q);
-      loadedGuests = data.boards[0].items_page.items.map(item => ({
-        id:      parseInt(item.id,10),
-        name:    item.name,
-        cargo:   item.column_values.find(c=>c.id==="cargo_column_id")?.text||"",
-        empresa: item.column_values.find(c=>c.id==="empresa_column_id")?.text||""
-      }));
+      loadedGuests = data.boards[0].items_page.items.map(item => {
+        const cols = item.column_values;
+        return {
+          id:      parseInt(item.id, 10),
+          name:    cols.find(c => c.id === "text_mkqreer2")?.text || "",
+          cargo:   cols.find(c => c.id === "text_mkqry55n")?.text || "",
+          empresa: cols.find(c => c.id === "text_mkqrghw1")?.text || ""
+        };
+      });
     } catch (err) {
       console.error('Erro ao carregar convidados:', err);
       alert('Não foi possível carregar a lista de convidados. Veja o console.');
@@ -369,17 +371,31 @@
     e.preventDefault();
     // Coleta os demais campos do form em vals…
     const vals = {
-      text_mkqrhjas: document.getElementById('text_mkqrhjas').value,
-      short_textossh5v4j: document.getElementById('short_textossh5v4j').value,
-      // … (outros campos text como antes) …
-      color_mkqr22e3: { label: 'Parado' },
-      // board_relation formatado corretamente:
-      ...(selectedGuests.length && {
-        board_relation_mkqr6b1t: {
-          linkedPulseIds: selectedGuests.map(g => ({ linkedPulseId: g.id }))
-        }
-      })
-    };
+    // text-тext fields usam string simples
+    text_mkqrhjas: title,
+    short_textossh5v4j: format,
+    ...(days      && { short_textb7obn15q: days     }),
+    ...(maxGuests && { text_mkqrjadb:      maxGuests }),
+    text_mkqrvnnp: duration,
+    long_text_mkqr5e1x: desc,
+    text_mkqrqmfw:     extras,
+    text_mkqrrpq3:     restr === 'Sim' ? ageRange : restr,
+    text_mkqrwawz:     tema1,
+    text_mkqrth67:     tema2,
+    text_mkqrm18v:     sub1,
+    text_mkqrfjz3:     sub2,
+    text_mkqr6nqa:     publico,
+
+    // status (aqui sim usa label)
+    color_mkqr22e3: { label: 'Parado' },
+
+    // board_relation (array de inteiros)
+    ...(guests.length && {
+    board_relation_mkqr6b1t: {
+      linkedPulseIds: guests.map(id => ({ linkedPulseId: id }))
+    }
+  })
+  };
 
     // Escapa JSON para GraphQL
     const colJson = JSON.stringify(vals)
