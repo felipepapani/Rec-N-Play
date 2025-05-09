@@ -236,7 +236,7 @@
     <button type="submit">Criar Atividade</button>
   </form>
 
- <script>
+ <<script>
     // Aponte para o seu Worker publicado:
     const API_URL = 'https://plain-butterfly-7001.programacao-e50.workers.dev';
 
@@ -249,15 +249,31 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query })
       });
-      const json = await res.json();
-      if (!res.ok || json.errors) throw json.errors || json;
+
+      let json;
+      try {
+        json = await res.json();
+      } catch {
+        throw { error: 'Resposta inválida do servidor' };
+      }
+
+      if (!res.ok) {
+        // captura nosso { error: "..."} do Worker ou statusText
+        throw { error: json.error || res.statusText };
+      }
+      if (json.errors) {
+        // erros GraphQL
+        throw json.errors;
+      }
       return json.data;
     }
 
     async function loadGuests() {
-      const q = `query { boards(ids: ["${GUEST_BOARD_ID}"]) {
-        items_page(limit:100) { items { id name } }
-      } }`;
+      const q = `query {
+        boards(ids: ["${GUEST_BOARD_ID}"]) {
+          items_page(limit:100) { items { id name } }
+        }
+      }`;
       try {
         const data = await mondayMutation(q);
         data.boards[0].items_page.items.forEach(item => {
@@ -267,7 +283,17 @@
           document.getElementById('board_relation_mkqr6b1t').appendChild(opt);
         });
       } catch (err) {
-        console.error('Erro ao carregar convidados:', err);
+        // Erros personalizados
+        if (Array.isArray(err)) {
+          console.error('GraphQL Errors:', err);
+          alert('Falha ao carregar convidados:\n' + err.map(e => e.message).join('\n'));
+        } else if (err.error) {
+          console.error('Worker Error:', err.error);
+          alert('Falha ao carregar convidados:\n' + err.error);
+        } else {
+          console.error('Erro inesperado:', err);
+          alert('Erro inesperado ao carregar convidados. Veja o console.');
+        }
       }
     }
     loadGuests();
