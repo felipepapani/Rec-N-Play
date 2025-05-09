@@ -378,7 +378,13 @@
     };
 
     // Escapa aspas para GraphQL
-    const colJson = JSON.stringify(vals).replace(/"/g,'\\"');
+    const colJson = JSON.stringify(vals)
+  // primeiro transforma cada \ em \\ (para não perder o escape original do JSON)
+  .replace(/\\/g, '\\\\')
+  // depois escapa as aspas que vão delimitar a string no GraphQL
+  .replace(/"/g, '\\"')
+  // (opcional) substitui quebras de linha reais por \n literais
+  .replace(/\n/g, '\\n');
    const mutation = `
     mutation {
       create_item(
