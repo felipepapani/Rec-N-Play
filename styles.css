@@ -1,88 +1,128 @@
-/* styles.css - Identidade Rec N Play 2025 */
 :root {
-    /* Paleta de cores Rec N Play 2025 */
-    --primary: #6A0DAD;       /* Roxo vibrante */
-    --secondary: #00C853;     /* Verde marcante */
-    --accent: #FDD835;        /* Amarelo destaque */
-    --bg: #F5F5F5;            /* Cinza claro */
-    --text: #333333;          /* Texto escuro */
-    --border: #CCCCCC;        /* Bordas suaves */
-  }
-  
-  /* Reset básico */
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
+  --primary-color: #4A90E2;
+  --secondary-color: #50E3C2;
+  --background-color: #f5f7fa;
+  --font-color: #333;
+  --input-background: #fff;
+  --border-radius: 8px;
+  --transition-duration: 0.3s;
+}
+
+/* Global resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  background-color: var(--background-color);
+  color: var(--font-color);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+form {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+  display: grid;
+  grid-gap: 1.5rem;
+}
+
+h1 {
+  font-size: 1.75rem;
+  text-align: center;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.95rem;
+}
+
+label > span,
+label > strong {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+input,
+textarea,
+select {
+  background-color: var(--input-background);
+  border: 1px solid #ccd0d5;
+  border-radius: var(--border-radius);
+  padding: 0.75rem;
+  font-size: 1rem;
+  transition: border-color var(--transition-duration), box-shadow var(--transition-duration);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.char-counter {
+  align-self: flex-end;
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 0.25rem;
+}
+
+button {
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color var(--transition-duration), transform var(--transition-duration);
+  justify-self: start;
+}
+
+button:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.hidden {
+  display: none !important;
+}
+
+select[multiple] {
+  min-height: 120px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
   body {
-    background-color: var(--bg);
-    color: var(--text);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.5;
-    padding: 2rem;
+    padding: 1rem;
   }
-  
-  h1 {
-    color: var(--primary);
-    text-align: center;
-    margin-bottom: 1.5rem;
-    font-size: 2rem;
-  }
-  
   form {
-    background: #FFFFFF;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    padding: 2rem;
-    max-width: 800px;
-    margin: 0 auto;
+    padding: 1.5rem;
+    grid-gap: 1rem;
   }
-  
-  label {
-    display: block;
-    margin-bottom: 1rem;
-    font-weight: 600;
-  }
-  
-  input[type="text"], textarea, select {
-    width: 100%;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 0.6rem;
-    font-size: 1rem;
-    transition: border-color 0.2s;
-  }
-  
-  input[type="text"]:focus, textarea:focus, select:focus {
-    outline: none;
-    border-color: var(--secondary);
-  }
-  
-  .char-counter {
-    text-align: right;
-    margin-top: 0.3rem;
-    font-size: 0.85rem;
-    color: var(--border);
-  }
-  
-  button[type="submit"] {
-    background-color: var(--primary);
-    color: #FFFFFF;
-    border: none;
-    border-radius: 4px;
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  button[type="submit"]:hover {
-    background-color: var(--secondary);
-  }
-  
-  .hidden {
-    display: none;
-  }
-  
+}
