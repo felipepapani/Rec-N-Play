@@ -336,46 +336,50 @@
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
 
-    const title = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
-    const format = formatSelect.value;
-    const days = document.getElementById('short_textb7obn15q').value;
-    const maxGuests = document.getElementById('text_mkqrjadb').value;
-    const duration = document.getElementById('text_mkqrvnnp').value;
-    const desc = document.getElementById('long_text_mkqr5e1x').value.replace(/"/g,'\\"');
-    const extras = document.getElementById('text_mkqrqmfw').value.replace(/"/g,'\\"');
-    const restr = restrSelect.value;
-    const ageRange = document.getElementById('text_mkqrrpq3_range').value;
+   // coleta valores…
+  const title     = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
+  const format    = document.getElementById('short_textossh5v4j').value;
+  const days      = document.getElementById('short_textb7obn15q').value;
+  const maxGuests = document.getElementById('text_mkqrjadb').value;
+  const duration  = document.getElementById('text_mkqrvnnp').value;
+  const desc      = document.getElementById('long_text_mkqr5e1x').value.replace(/"/g,'\\"');
+  const extras    = document.getElementById('text_mkqrqmfw').value.replace(/"/g,'\\"');
+  const restr     = document.getElementById('text_mkqrrpq3').value;
+  const ageRange  = document.getElementById('text_mkqrrpq3_range').value;
 
-    // Dropdowns precisam de { label: "..."}
-    const tema1 = document.getElementById('text_mkqrwawz').value;
-    const tema2 = document.getElementById('text_mkqrth67').value;
-    const sub1  = document.getElementById('text_mkqrm18v').value;
-    const sub2  = document.getElementById('text_mkqrfjz3').value;
-    const publico = document.getElementById('text_mkqr6nqa').value;
+  // dropdowns
+  const tema1   = document.getElementById('text_mkqrwawz').value;
+  const tema2   = document.getElementById('text_mkqrth67').value;
+  const sub1    = document.getElementById('text_mkqrm18v').value;
+  const sub2    = document.getElementById('text_mkqrfjz3').value;
+  const publico = document.getElementById('text_mkqr6nqa').value;
 
     // Convidados como array de inteiros
     const guests = Array.from(
-      document.getElementById('board_relation_mkqr6b1t').selectedOptions
-    ).map(o => parseInt(o.value, 10));
-
+    document.getElementById('board_relation_mkqr6b1t').selectedOptions
+  ).map(o => parseInt(o.value, 10));
     // Monta o objeto column_values
-    const vals = {
-      text_mkqrhjas: title,
-      short_textossh5v4j: format,
-      ...(showDays.has(format) && days && { short_textb7obn15q: days }),
-      ...(showMax.has(format)  && maxGuests && { text_mkqrjadb: maxGuests }),
-      text_mkqrvnnp: duration,
-      long_text_mkqr5e1x: desc,
-      text_mkqrqmfw: extras,
-      color_mkqr22e3: { label: 'Parado' },
-      text_mkqrrpq3: restr === 'Sim' ? ageRange : restr,
-      ...(tema1   && { text_mkqrwawz:  { label: tema1   } }),
-      ...(tema2   && { text_mkqrth67:  { label: tema2   } }),
-      ...(sub1    && { text_mkqrm18v:  { label: sub1    } }),
-      ...(sub2    && { text_mkqrfjz3:  { label: sub2    } }),
-      ...(publico && { text_mkqr6nqa: { label: publico } }),
-      ...(guests.length && { board_relation_mkqr6b1t: guests })
-    };
+   onst vals = {
+    text_mkqrhjas: title,
+    // Dropdowns
+    short_textossh5v4j:    { label: format },
+    ...(days     && { short_textb7obn15q: { label: days     } }),
+    ...(maxGuests&& { text_mkqrjadb:      { label: maxGuests } }),
+    text_mkqrrpq3:         { label: restr === 'Sim' ? ageRange : restr },
+    text_mkqrwawz:         { label: tema1   },
+    text_mkqrth67:         { label: tema2   },
+    text_mkqrm18v:         { label: sub1    },
+    text_mkqrfjz3:         { label: sub2    },
+    text_mkqr6nqa:         { label: publico },
+    // Campos de texto simples
+    text_mkqrvnnp: duration,
+    long_text_mkqr5e1x: desc,
+    text_mkqrqmfw:     extras,
+    // Status
+    color_mkqr22e3:    { label: 'Parado' },
+    // Board-relation
+    ...(guests.length && { board_relation_mkqr6b1t: guests })
+  };
 
     // Escapa aspas para GraphQL
     const colJson = JSON.stringify(vals)
