@@ -236,126 +236,176 @@
     <button type="submit">Criar Atividade</button>
   </form>
 
- <<script>
-    // Aponte para o seu Worker publicado:
-    const API_URL = 'https://plain-butterfly-7001.programacao-e50.workers.dev';
+ <script>
+  // Aponte para o seu Worker publicado:
+  const API_URL = 'https://plain-butterfly-7001.programacao-e50.workers.dev';
+  const BOARD_ID = 9099133664;
+  const GUEST_BOARD_ID = 9102764459;
 
-    const BOARD_ID = 9099133664;
-    const GUEST_BOARD_ID = 9102764459;
+  async function mondayMutation(query) {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
 
-    async function mondayMutation(query) {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
+    let json;
+    try {
+      json = await res.json();
+    } catch {
+      throw { error: 'Resposta inválida do servidor' };
+    }
+
+    if (!res.ok) {
+      throw { error: json.error || res.statusText };
+    }
+    if (json.errors) {
+      throw json.errors;
+    }
+    return json.data;
+  }
+
+  async function loadGuests() {
+    // ID passado como número, não string
+    const q = `query {
+      boards(ids: [${GUEST_BOARD_ID}]) {
+        items_page(limit:100) {
+          items { id name }
+        }
+      }
+    }`;
+
+    try {
+      const data = await mondayMutation(q);
+      data.boards[0].items_page.items.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = item.name;
+        document.getElementById('board_relation_mkqr6b1t').appendChild(opt);
       });
-
-      let json;
-      try {
-        json = await res.json();
-      } catch {
-        throw { error: 'Resposta inválida do servidor' };
-      }
-
-      if (!res.ok) {
-        // captura nosso { error: "..."} do Worker ou statusText
-        throw { error: json.error || res.statusText };
-      }
-      if (json.errors) {
-        // erros GraphQL
-        throw json.errors;
-      }
-      return json.data;
-    }
-
-    async function loadGuests() {
-      const q = `query {
-        boards(ids: ["${GUEST_BOARD_ID}"]) {
-          items_page(limit:100) { items { id name } }
-        }
-      }`;
-      try {
-        const data = await mondayMutation(q);
-        data.boards[0].items_page.items.forEach(item => {
-          const opt = document.createElement('option');
-          opt.value = item.id;
-          opt.textContent = item.name;
-          document.getElementById('board_relation_mkqr6b1t').appendChild(opt);
-        });
-      } catch (err) {
-        // Erros personalizados
-        if (Array.isArray(err)) {
-          console.error('GraphQL Errors:', err);
-          alert('Falha ao carregar convidados:\n' + err.map(e => e.message).join('\n'));
-        } else if (err.error) {
-          console.error('Worker Error:', err.error);
-          alert('Falha ao carregar convidados:\n' + err.error);
-        } else {
-          console.error('Erro inesperado:', err);
-          alert('Erro inesperado ao carregar convidados. Veja o console.');
-        }
+    } catch (err) {
+      if (Array.isArray(err)) {
+        console.error('GraphQL Errors:', err);
+        alert('Falha ao carregar convidados:\n' + err.map(e => e.message).join('\n'));
+      } else if (err.error) {
+        console.error('Worker Error:', err.error);
+        alert('Falha ao carregar convidados:\n' + err.error);
+      } else {
+        console.error('Erro inesperado:', err);
+        alert('Erro inesperado ao carregar convidados. Veja o console.');
       }
     }
-    loadGuests();
+  }
+  loadGuests();
 
-    // Contadores de caracteres
-    document.getElementById("long_text_mkqr5e1x").addEventListener("input", e => {
-      document.getElementById("descCounter").textContent = `${e.target.value.length}/700`;
-    });
-    document.getElementById("text_mkqrqmfw").addEventListener("input", e => {
-      document.getElementById("extrasCounter").textContent = `${e.target.value.length}/700`;
-    });
+  // Contadores de caracteres
+  document.getElementById('long_text_mkqr5e1x').addEventListener('input', e => {
+    document.getElementById('descCounter').textContent = `${e.target.value.length}/700`;
+  });
+  document.getElementById('text_mkqrqmfw').addEventListener('input', e => {
+    document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`;
+  });
 
-    const formatSelect = document.getElementById("short_textossh5v4j");
-    const daysLabel = document.getElementById("daysLabel");
-    const maxGuestsLabel = document.getElementById("maxGuestsLabel");
-    const showDays = new Set(["Atendimentos","Mentoria","Pitchs","Rodada de negócios","Oficina","Minicurso","Hackathon","Intervenção urbana","Demonstração","Experiência","Visitas/ percursos guiados","Campeonato","Exposição artística","Feira"]);
-    const showMax = new Set(["Mentoria","Pitchs","Revisão de portfólio","Rodada de negócios"]);
-    function toggleFields() {
-      daysLabel.classList.toggle("hidden", !showDays.has(formatSelect.value));
-      maxGuestsLabel.classList.toggle("hidden", !showMax.has(formatSelect.value));
-    }
-    formatSelect.addEventListener("change", toggleFields);
-    toggleFields();
+  // Toggle de campos
+  const formatSelect = document.getElementById('short_textossh5v4j');
+  const daysLabel = document.getElementById('daysLabel');
+  const maxGuestsLabel = document.getElementById('maxGuestsLabel');
+  const showDays = new Set([
+    'Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina',
+    'Minicurso','Hackathon','Intervenção urbana','Demonstração',
+    'Experiência','Visitas/ percursos guiados','Campeonato',
+    'Exposição artística','Feira'
+  ]);
+  const showMax = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
+  function toggleFields() {
+    daysLabel.classList.toggle('hidden', !showDays.has(formatSelect.value));
+    maxGuestsLabel.classList.toggle('hidden', !showMax.has(formatSelect.value));
+  }
+  formatSelect.addEventListener('change', toggleFields);
+  toggleFields();
 
-    const restrSelect = document.getElementById("text_mkqrrpq3");
-    const ageLabel = document.getElementById("ageRangeLabel");
-    function toggleAgeRange() {
-      ageLabel.classList.toggle("hidden", restrSelect.value !== "Sim");
-    }
-    restrSelect.addEventListener("change", toggleAgeRange);
-    toggleAgeRange();
+  const restrSelect = document.getElementById('text_mkqrrpq3');
+  const ageLabel = document.getElementById('ageRangeLabel');
+  function toggleAgeRange() {
+    ageLabel.classList.toggle('hidden', restrSelect.value !== 'Sim');
+  }
+  restrSelect.addEventListener('change', toggleAgeRange);
+  toggleAgeRange();
 
-    document.getElementById("activityForm").addEventListener("submit", async e => {
-      e.preventDefault();
-      const title = document.getElementById("text_mkqrhjas").value.replace(/"/g,'\\"');
-      const vals = { text_mkqrhjas: title, short_textossh5v4j: formatSelect.value };
-      if (showDays.has(formatSelect.value)) vals.short_textb7obn15q = document.getElementById("short_textb7obn15q").value;
-      if (showMax.has(formatSelect.value)) vals.text_mkqrjadb = document.getElementById("text_mkqrjadb").value;
-      vals.text_mkqrvnnp = document.getElementById("text_mkqrvnnp").value;
-      vals.long_text_mkqr5e1x = document.getElementById("long_text_mkqr5e1x").value.replace(/"/g,'\\"');
-      vals.text_mkqrqmfw = document.getElementById("text_mkqrqmfw").value.replace(/"/g,'\\"');
-      vals.color_mkqr22e3 = { label: "Parado" };
-      vals.text_mkqrrpq3 = restrSelect.value;
-      if (restrSelect.value === "Sim") vals.text_mkqrrpq3 = document.getElementById("text_mkqrrpq3_range").value.replace(/"/g,'\\"');
-      const guests = Array.from(document.getElementById("board_relation_mkqr6b1t").selectedOptions).map(o => parseInt(o.value, 10));
-      if (guests.length) vals.board_relation_mkqr6b1t = guests;
+  // Submissão do form
+  document.getElementById('activityForm').addEventListener('submit', async e => {
+    e.preventDefault();
 
-      const colJson = JSON.stringify(vals).replace(/"/g,'\\"');
-      const mutation = `mutation { create_item(board_id: ${BOARD_ID}, item_name: "${title}", column_values: "${colJson}") { id } }`;
-      try {
-        const data = await mondayMutation(mutation) ;
-        alert("Atividade criada! ID: " + data.create_item.id);
-        e.target.reset();
-        document.getElementById("descCounter").textContent = "0/700";
-        document.getElementById("extrasCounter").textContent = "0/700";
-        toggleFields();
-        toggleAgeRange();
-      } catch (err) {
-        console.error("Erro:", err);
-        alert("Falha: " + JSON.stringify(err));
+    const title = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
+    const format = formatSelect.value;
+    const days = document.getElementById('short_textb7obn15q').value;
+    const maxGuests = document.getElementById('text_mkqrjadb').value;
+    const duration = document.getElementById('text_mkqrvnnp').value;
+    const desc = document.getElementById('long_text_mkqr5e1x').value.replace(/"/g,'\\"');
+    const extras = document.getElementById('text_mkqrqmfw').value.replace(/"/g,'\\"');
+    const restr = restrSelect.value;
+    const ageRange = document.getElementById('text_mkqrrpq3_range').value;
+
+    // Dropdowns precisam de { label: "..."}
+    const tema1 = document.getElementById('text_mkqrwawz').value;
+    const tema2 = document.getElementById('text_mkqrth67').value;
+    const sub1  = document.getElementById('text_mkqrm18v').value;
+    const sub2  = document.getElementById('text_mkqrfjz3').value;
+    const publico = document.getElementById('text_mkqr6nqa').value;
+
+    // Convidados como array de inteiros
+    const guests = Array.from(
+      document.getElementById('board_relation_mkqr6b1t').selectedOptions
+    ).map(o => parseInt(o.value, 10));
+
+    // Monta o objeto column_values
+    const vals = {
+      text_mkqrhjas: title,
+      short_textossh5v4j: format,
+      ...(showDays.has(format) && days && { short_textb7obn15q: days }),
+      ...(showMax.has(format)  && maxGuests && { text_mkqrjadb: maxGuests }),
+      text_mkqrvnnp: duration,
+      long_text_mkqr5e1x: desc,
+      text_mkqrqmfw: extras,
+      color_mkqr22e3: { label: 'Parado' },
+      text_mkqrrpq3: restr === 'Sim' ? ageRange : restr,
+      ...(tema1   && { text_mkqrwawz:  { label: tema1   } }),
+      ...(tema2   && { text_mkqrth67:  { label: tema2   } }),
+      ...(sub1    && { text_mkqrm18v:  { label: sub1    } }),
+      ...(sub2    && { text_mkqrfjz3:  { label: sub2    } }),
+      ...(publico && { text_mkqr6nqa: { label: publico } }),
+      ...(guests.length && { board_relation_mkqr6b1t: guests })
+    };
+
+    // Escapa aspas para GraphQL
+    const colJson = JSON.stringify(vals).replace(/"/g,'\\"');
+    const mutation = `
+      mutation {
+        create_item(
+          board_id: ${BOARD_ID},
+          item_name: "${title}",
+          column_values: "${colJson}"
+        ) { id }
       }
-    });
-  </script>
-</body>
-</html>
+    `;
+
+    try {
+      const data = await mondayMutation(mutation);
+      alert('Atividade criada! ID: ' + data.create_item.id);
+      e.target.reset();
+      document.getElementById('descCounter').textContent = '0/700';
+      document.getElementById('extrasCounter').textContent = '0/700';
+      toggleFields();
+      toggleAgeRange();
+    } catch (err) {
+      console.error('Erro:', err);
+      if (Array.isArray(err)) {
+        alert('Falha GraphQL:\n' + err.map(e => e.message).join('\n'));
+      } else if (err.error) {
+        alert('Erro do Worker:\n' + err.error);
+      } else {
+        alert('Erro inesperado. Veja o console.');
+      }
+    }
+  });
+</script>
