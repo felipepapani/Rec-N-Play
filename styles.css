@@ -13,7 +13,131 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}:root {
+  /* Cores do REC n Play 2025 (aproximação a partir de artes promocionais) */
+  --primary-color: #8A2BE2; /* Roxo vibrante */
+  --secondary-color: #00FF7F; /* Verde neon */
+  --background-color: #f5f7fa;
+  --font-color: #333;
+  --input-background: #fff;
+  --border-radius: 8px;
+  --transition-duration: 0.3s;
 }
+
+/* Reset global */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  background-color: var(--background-color);
+  color: var(--font-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+h1 {
+  font-size: 1.75rem;
+  text-align: center;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+form {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+  display: grid;
+  grid-gap: 1.5rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.95rem;
+}
+
+input,
+textarea,
+select {
+  background-color: var(--input-background);
+  border: 1px solid #ccd0d5;
+  border-radius: var(--border-radius);
+  padding: 0.75rem;
+  font-size: 1rem;
+  transition: border-color var(--transition-duration), box-shadow var(--transition-duration);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.char-counter {
+  align-self: flex-end;
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 0.25rem;
+}
+
+button {
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color var(--transition-duration), transform var(--transition-duration);
+  justify-self: center;
+}
+
+button:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.hidden {
+  display: none !important;
+}
+
+select[multiple] {
+  min-height: 120px;
+}
+
+/* Responsivo */
+@media (max-width: 600px) {
+  body {
+    padding: 1rem;
+  }
+  form {
+    padding: 1.5rem;
+    grid-gap: 1rem;
+  }
+}
+
 
 body {
   font-family: 'Segoe UI', Tahoma, sans-serif;
