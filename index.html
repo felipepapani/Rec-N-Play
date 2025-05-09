@@ -379,33 +379,35 @@
 
     // Escapa aspas para GraphQL
     const colJson = JSON.stringify(vals).replace(/"/g,'\\"');
-    const mutation = `
-      mutation {
-        create_item(
-          board_id: ${BOARD_ID},
-          item_name: "${title}",
-          column_values: "${colJson}"
-        ) { id }
-      }
-    `;
-
-    try {
-      const data = await mondayMutation(mutation);
-      alert('Atividade criada! ID: ' + data.create_item.id);
-      e.target.reset();
-      document.getElementById('descCounter').textContent = '0/700';
-      document.getElementById('extrasCounter').textContent = '0/700';
-      toggleFields();
-      toggleAgeRange();
-    } catch (err) {
-      console.error('Erro:', err);
-      if (Array.isArray(err)) {
-        alert('Falha GraphQL:\n' + err.map(e => e.message).join('\n'));
-      } else if (err.error) {
-        alert('Erro do Worker:\n' + err.error);
-      } else {
-        alert('Erro inesperado. Veja o console.');
-      }
+   const mutation = `
+    mutation {
+      create_item(
+        board_id: ${BOARD_ID},
+        item_name: "${title}",
+        column_values: "${colJson}"
+      ) { id }
     }
-  });
+  `;
+  console.log('▶️ Enviando mutation:', mutation);
+
+  try {
+    const data = await mondayMutation(mutation);
+    alert('Atividade criada! ID: ' + data.create_item.id);
+  } catch (err) {
+    // **Log detalhado do erro**
+    console.error('❌ GraphQL error object:', err);
+    if (Array.isArray(err)) {
+      err.forEach((e,i) => {
+        console.error(`— erro[${i}].message:`, e.message);
+        console.error(`— erro[${i}].extensions:`, e.extensions);
+      });
+      alert('Falha GraphQL:\n' + err.map(e => e.message).join('\n'));
+    } else if (err.error) {
+      console.error('— Worker retornou:', err.error);
+      alert('Erro do Worker:\n' + err.error);
+    } else {
+      alert('Erro inesperado. Veja o console.');
+    }
+  }
+});
 </script>
