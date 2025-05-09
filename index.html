@@ -1,10 +1,8 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <link rel="stylesheet" href="styles.css">
-
-  <!-- Responsivo -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cadastro Completo de Atividade</title>
   <style>
@@ -72,7 +70,7 @@
     </label>
 
     <label>
-      Duração:
+      Duração (text_mkqrvnnp):
       <input type="text" id="text_mkqrvnnp">
     </label>
 
@@ -238,45 +236,99 @@
     <button type="submit">Criar Atividade</button>
   </form>
 
-  <script>
-    const WORKER_URL = "https://plain-butterfly-7001.programacao-e50.workers.dev/";
-  
-    // 1) Carrega convidados
-    async function loadGuests() {
-      const res = await fetch(WORKER_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "loadGuests", payload: {} })
+ <script>
+    // Aponte para o seu Worker publicado:
+    const API_URL = 'https://plain-butterfly-7001.programacao-e50.workers.dev';
+
+    const BOARD_ID = 9099133664;
+    const GUEST_BOARD_ID = 9102764459;
+
+    async function mondayMutation(query) {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query })
       });
       const json = await res.json();
-      json.data.boards[0].items_page.items.forEach(item => {
-        const opt = document.createElement("option");
-        opt.value = item.id;
-        opt.textContent = item.name;
-        document.getElementById("board_relation_mkqr6b1t")
-                .appendChild(opt);
-      });
+      if (!res.ok || json.errors) throw json.errors || json;
+      return json.data;
+    }
+
+    async function loadGuests() {
+      const q = `query { boards(ids: ["${GUEST_BOARD_ID}"]) {
+        items_page(limit:100) { items { id name } }
+      } }`;
+      try {
+        const data = await mondayMutation(q);
+        data.boards[0].items_page.items.forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = item.id;
+          opt.textContent = item.name;
+          document.getElementById('board_relation_mkqr6b1t').appendChild(opt);
+        });
+      } catch (err) {
+        console.error('Erro ao carregar convidados:', err);
+      }
     }
     loadGuests();
-  
-    // 2) Envia o formulário
-    document.getElementById("activityForm")
-      .addEventListener("submit", async e => {
-        e.preventDefault();
-        // ...coleta todos os campos em `vals`...
-        const vals = { /* seu objeto com text_mkqrhjas, etc. */ };
-  
-        const res = await fetch(WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "createItem", payload: vals })
-        });
-        const json = await res.json();
-        if (json.data?.create_item) {
-          alert("Criado! ID: " + json.data.create_item.id);
-        } else {
-          alert("Erro: " + JSON.stringify(json.errors || json));
-        }
+
+    // Contadores de caracteres
+    document.getElementById("long_text_mkqr5e1x").addEventListener("input", e => {
+      document.getElementById("descCounter").textContent = `${e.target.value.length}/700`;
+    });
+    document.getElementById("text_mkqrqmfw").addEventListener("input", e => {
+      document.getElementById("extrasCounter").textContent = `${e.target.value.length}/700`;
+    });
+
+    const formatSelect = document.getElementById("short_textossh5v4j");
+    const daysLabel = document.getElementById("daysLabel");
+    const maxGuestsLabel = document.getElementById("maxGuestsLabel");
+    const showDays = new Set(["Atendimentos","Mentoria","Pitchs","Rodada de negócios","Oficina","Minicurso","Hackathon","Intervenção urbana","Demonstração","Experiência","Visitas/ percursos guiados","Campeonato","Exposição artística","Feira"]);
+    const showMax = new Set(["Mentoria","Pitchs","Revisão de portfólio","Rodada de negócios"]);
+    function toggleFields() {
+      daysLabel.classList.toggle("hidden", !showDays.has(formatSelect.value));
+      maxGuestsLabel.classList.toggle("hidden", !showMax.has(formatSelect.value));
+    }
+    formatSelect.addEventListener("change", toggleFields);
+    toggleFields();
+
+    const restrSelect = document.getElementById("text_mkqrrpq3");
+    const ageLabel = document.getElementById("ageRangeLabel");
+    function toggleAgeRange() {
+      ageLabel.classList.toggle("hidden", restrSelect.value !== "Sim");
+    }
+    restrSelect.addEventListener("change", toggleAgeRange);
+    toggleAgeRange();
+
+    document.getElementById("activityForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const title = document.getElementById("text_mkqrhjas").value.replace(/"/g,'\\"');
+      const vals = { text_mkqrhjas: title, short_textossh5v4j: formatSelect.value };
+      if (showDays.has(formatSelect.value)) vals.short_textb7obn15q = document.getElementById("short_textb7obn15q").value;
+      if (showMax.has(formatSelect.value)) vals.text_mkqrjadb = document.getElementById("text_mkqrjadb").value;
+      vals.text_mkqrvnnp = document.getElementById("text_mkqrvnnp").value;
+      vals.long_text_mkqr5e1x = document.getElementById("long_text_mkqr5e1x").value.replace(/"/g,'\\"');
+      vals.text_mkqrqmfw = document.getElementById("text_mkqrqmfw").value.replace(/"/g,'\\"');
+      vals.color_mkqr22e3 = { label: "Parado" };
+      vals.text_mkqrrpq3 = restrSelect.value;
+      if (restrSelect.value === "Sim") vals.text_mkqrrpq3 = document.getElementById("text_mkqrrpq3_range").value.replace(/"/g,'\\"');
+      const guests = Array.from(document.getElementById("board_relation_mkqr6b1t").selectedOptions).map(o => parseInt(o.value, 10));
+      if (guests.length) vals.board_relation_mkqr6b1t = guests;
+
+      const colJson = JSON.stringify(vals).replace(/"/g,'\\"');
+      const mutation = `mutation { create_item(board_id: ${BOARD_ID}, item_name: "${title}", column_values: "${colJson}") { id } }`;
+      try {
+        const data = await mondayMutation(mutation) ;
+        alert("Atividade criada! ID: " + data.create_item.id);
+        e.target.reset();
+        document.getElementById("descCounter").textContent = "0/700";
+        document.getElementById("extrasCounter").textContent = "0/700";
+        toggleFields();
+        toggleAgeRange();
+      } catch (err) {
+        console.error("Erro:", err);
+        alert("Falha: " + JSON.stringify(err));
+      }
     });
   </script>
 </body>
