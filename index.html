@@ -333,91 +333,88 @@
   toggleAgeRange();
 
   // Submissão do form
-  document.getElementById('activityForm').addEventListener('submit', async e => {
-    e.preventDefault();
+ ocument.getElementById('activityForm').addEventListener('submit', async e => {
+  e.preventDefault();
 
-   // coleta valores…
-  const title     = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
+  // 1) Coleta de valores
+  const title     = document.getElementById('text_mkqrhjas').value;
   const format    = document.getElementById('short_textossh5v4j').value;
   const days      = document.getElementById('short_textb7obn15q').value;
   const maxGuests = document.getElementById('text_mkqrjadb').value;
   const duration  = document.getElementById('text_mkqrvnnp').value;
-  const desc      = document.getElementById('long_text_mkqr5e1x').value.replace(/"/g,'\\"');
-  const extras    = document.getElementById('text_mkqrqmfw').value.replace(/"/g,'\\"');
+  const desc      = document.getElementById('long_text_mkqr5e1x').value;
+  const extras    = document.getElementById('text_mkqrqmfw').value;
   const restr     = document.getElementById('text_mkqrrpq3').value;
   const ageRange  = document.getElementById('text_mkqrrpq3_range').value;
+  const tema1     = document.getElementById('text_mkqrwawz').value;
+  const tema2     = document.getElementById('text_mkqrth67').value;
+  const sub1      = document.getElementById('text_mkqrm18v').value;
+  const sub2      = document.getElementById('text_mkqrfjz3').value;
+  const publico   = document.getElementById('text_mkqr6nqa').value;
 
-  // dropdowns
-  const tema1   = document.getElementById('text_mkqrwawz').value;
-  const tema2   = document.getElementById('text_mkqrth67').value;
-  const sub1    = document.getElementById('text_mkqrm18v').value;
-  const sub2    = document.getElementById('text_mkqrfjz3').value;
-  const publico = document.getElementById('text_mkqr6nqa').value;
-
-    // Convidados como array de inteiros
-    const guests = Array.from(
+  // Board-relation como array de inteiros
+  const guests = Array.from(
     document.getElementById('board_relation_mkqr6b1t').selectedOptions
   ).map(o => parseInt(o.value, 10));
-    // Monta o objeto column_values
-   const vals = {
+
+  // 2) Montagem de column_values
+  const vals = {
+    // text-тext fields usam string simples
     text_mkqrhjas: title,
-    // Dropdowns
-    short_textossh5v4j:    { label: format },
-    ...(days     && { short_textb7obn15q: { label: days     } }),
-    ...(maxGuests&& { text_mkqrjadb:      { label: maxGuests } }),
-    text_mkqrrpq3:         { label: restr === 'Sim' ? ageRange : restr },
-    text_mkqrwawz:         { label: tema1   },
-    text_mkqrth67:         { label: tema2   },
-    text_mkqrm18v:         { label: sub1    },
-    text_mkqrfjz3:         { label: sub2    },
-    text_mkqr6nqa:         { label: publico },
-    // Campos de texto simples
+    short_textossh5v4j: format,
+    ...(days      && { short_textb7obn15q: days     }),
+    ...(maxGuests && { text_mkqrjadb:      maxGuests }),
     text_mkqrvnnp: duration,
     long_text_mkqr5e1x: desc,
     text_mkqrqmfw:     extras,
-    // Status
-    color_mkqr22e3:    { label: 'Parado' },
-    // Board-relation
+    text_mkqrrpq3:     restr === 'Sim' ? ageRange : restr,
+    text_mkqrwawz:     tema1,
+    text_mkqrth67:     tema2,
+    text_mkqrm18v:     sub1,
+    text_mkqrfjz3:     sub2,
+    text_mkqr6nqa:     publico,
+
+    // status (aqui sim usa label)
+    color_mkqr22e3: { label: 'Parado' },
+
+    // board_relation (array de inteiros)
     ...(guests.length && { board_relation_mkqr6b1t: guests })
   };
 
-    // Escapa aspas para GraphQL
-    const colJson = JSON.stringify(vals)
-  // primeiro transforma cada \ em \\ (para não perder o escape original do JSON)
-  .replace(/\\/g, '\\\\')
-  // depois escapa as aspas que vão delimitar a string no GraphQL
-  .replace(/"/g, '\\"')
-  // (opcional) substitui quebras de linha reais por \n literais
-  .replace(/\n/g, '\\n');
-   const mutation = `
+  // 3) Escape completo para GraphQL
+  const colJson = JSON.stringify(vals)
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n');
+
+  const mutation = `
     mutation {
       create_item(
         board_id: ${BOARD_ID},
-        item_name: "${title}",
+        item_name: "${title.replace(/"/g,'\\"')}",
         column_values: "${colJson}"
       ) { id }
     }
   `;
   console.log('▶️ Enviando mutation:', mutation);
 
+  // 4) Envio e tratamento de erro
   try {
     const data = await mondayMutation(mutation);
     alert('Atividade criada! ID: ' + data.create_item.id);
+    e.target.reset();
+    document.getElementById('descCounter').textContent = '0/700';
+    document.getElementById('extrasCounter').textContent = '0/700';
+    toggleFields();
+    toggleAgeRange();
   } catch (err) {
-    // **Log detalhado do erro**
     console.error('❌ GraphQL error object:', err);
     if (Array.isArray(err)) {
-      err.forEach((e,i) => {
-        console.error(`— erro[${i}].message:`, e.message);
-        console.error(`— erro[${i}].extensions:`, e.extensions);
-      });
       alert('Falha GraphQL:\n' + err.map(e => e.message).join('\n'));
     } else if (err.error) {
-      console.error('— Worker retornou:', err.error);
       alert('Erro do Worker:\n' + err.error);
     } else {
       alert('Erro inesperado. Veja o console.');
     }
   }
 });
-</script>
