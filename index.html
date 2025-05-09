@@ -378,7 +378,11 @@
     color_mkqr22e3: { label: 'Parado' },
 
     // board_relation (array de inteiros)
-    ...(guests.length && { board_relation_mkqr6b1t: guests })
+    ...(guests.length && {
+    board_relation_mkqr6b1t: {
+      linkedPulseIds: guests.map(id => ({ linkedPulseId: id }))
+    }
+  })
   };
 
   // 3) Escape completo para GraphQL
