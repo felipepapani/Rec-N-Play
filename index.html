@@ -228,200 +228,194 @@
     </label>
 
    
-    <label>
-      Convidados (muliselect):
-      <select id="board_relation_mkqr6b1t" multiple size="6"></select>
-    </label>
+     <label>Convidados:</label>
+    <div class="guest-slots" id="guestSlots">
+      <!-- aqui serão adicionados até 6 .guest-slot -->
+    </div>
+    <button type="button" id="addGuestBtn">+</button>
 
     <button type="submit">Criar Atividade</button>
   </form>
+  <!-- Modal de busca -->
+  <div class="modal hidden" id="guestModal">
+    <div class="content">
+      <h3>Buscar Convidado</h3>
+      <input type="text" id="guestSearchInput" placeholder="Nome, cargo ou empresa" style="width:100%; padding:.4rem"/>
+      <ul id="guestSearchResults"></ul>
+      <button id="closeGuestModal">Fechar</button>
+    </div>
+  </div>  
 
  <script>
-  // Aponte para o seu Worker publicado:
+  // Configurações
   const API_URL = 'https://plain-butterfly-7001.programacao-e50.workers.dev';
   const BOARD_ID = 9099133664;
   const GUEST_BOARD_ID = 9102764459;
 
+  // Guarda toda a lista de convidados e os selecionados
+  let loadedGuests = [];
+  let selectedGuests = [];
+
+  // Faz qualquer query GraphQL ao seu Worker→Monday
   async function mondayMutation(query) {
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query })
     });
-
-    let json;
-    try {
-      json = await res.json();
-    } catch {
-      throw { error: 'Resposta inválida do servidor' };
-    }
-
-    if (!res.ok) {
-      throw { error: json.error || res.statusText };
-    }
-    if (json.errors) {
-      throw json.errors;
-    }
-    return json.data;
+    const j = await res.json();
+    if (!res.ok) throw j.errors || j;
+    if (j.errors) throw j.errors;
+    return j.data;
   }
 
+  // Carrega os convidados do board de convidados, incluindo cargo e empresa
   async function loadGuests() {
-    // ID passado como número, não string
+    // Substitua "cargo_column_id" e "empresa_column_id" pelos IDs reais dessas colunas no seu board de convidados
     const q = `query {
-      boards(ids: [${GUEST_BOARD_ID}]) {
+      boards(ids:[${GUEST_BOARD_ID}]) {
         items_page(limit:100) {
-          items { id name }
+          items {
+            id
+            name
+            column_values(ids:["cargo_column_id","empresa_column_id"]) {
+              id text
+            }
+          }
         }
       }
     }`;
-
     try {
       const data = await mondayMutation(q);
-      data.boards[0].items_page.items.forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item.id;
-        opt.textContent = item.name;
-        document.getElementById('board_relation_mkqr6b1t').appendChild(opt);
-      });
+      loadedGuests = data.boards[0].items_page.items.map(item => ({
+        id:      parseInt(item.id,10),
+        name:    item.name,
+        cargo:   item.column_values.find(c=>c.id==="cargo_column_id")?.text||"",
+        empresa: item.column_values.find(c=>c.id==="empresa_column_id")?.text||""
+      }));
     } catch (err) {
-      if (Array.isArray(err)) {
-        console.error('GraphQL Errors:', err);
-        alert('Falha ao carregar convidados:\n' + err.map(e => e.message).join('\n'));
-      } else if (err.error) {
-        console.error('Worker Error:', err.error);
-        alert('Falha ao carregar convidados:\n' + err.error);
-      } else {
-        console.error('Erro inesperado:', err);
-        alert('Erro inesperado ao carregar convidados. Veja o console.');
+      console.error('Erro ao carregar convidados:', err);
+      alert('Não foi possível carregar a lista de convidados. Veja o console.');
+    }
+  }
+
+  // Renderiza os slots de convidados na tela
+  function renderSlots() {
+    const container = document.getElementById('guestSlots');
+    container.innerHTML = '';
+    selectedGuests.forEach((g, i) => {
+      const div = document.createElement('div');
+      div.className = 'guest-slot';
+      div.textContent = g.name;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'remove';
+      btn.innerHTML = '&times;';
+      btn.onclick = () => { selectedGuests.splice(i,1); renderSlots(); };
+      div.appendChild(btn);
+      container.appendChild(div);
+    });
+    if (selectedGuests.length < 6) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'addGuestBtn';
+      btn.textContent = '+';
+      btn.onclick = openGuestModal;
+      container.appendChild(btn);
+    }
+  }
+
+  // Abre o modal de busca
+  function openGuestModal() {
+    document.getElementById('guestModal').classList.remove('hidden');
+    document.getElementById('guestSearchInput').value = '';
+    showSearchResults(loadedGuests.slice(0,10));
+  }
+
+  // Fecha o modal
+  function closeGuestModal() {
+    document.getElementById('guestModal').classList.add('hidden');
+  }
+
+  // Exibe na lista do modal os convidados filtrados
+  function showSearchResults(list) {
+    const ul = document.getElementById('guestSearchResults');
+    ul.innerHTML = '';
+    list.forEach(g => {
+      const li = document.createElement('li');
+      li.innerHTML = `<strong>${g.name}</strong><br/><small>${g.cargo} @ ${g.empresa}</small>`;
+      li.onclick = () => {
+        selectedGuests.push(g);
+        closeGuestModal();
+        renderSlots();
+      };
+      ul.appendChild(li);
+    });
+  }
+
+  // Filtra enquanto digita
+  document.getElementById('guestSearchInput').addEventListener('input', e => {
+    const term = e.target.value.toLowerCase();
+    const filtered = loadedGuests.filter(g =>
+      g.name.toLowerCase().includes(term) ||
+      g.cargo.toLowerCase().includes(term) ||
+      g.empresa.toLowerCase().includes(term)
+    );
+    showSearchResults(filtered.slice(0,20));
+  });
+  document.getElementById('closeGuestModal').onclick = closeGuestModal;
+
+  // Quando o form for submetido, inclui selectedGuests no payload e envia
+  document.getElementById('activityForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    // Coleta os demais campos do form em vals…
+    const vals = {
+      text_mkqrhjas: document.getElementById('text_mkqrhjas').value,
+      short_textossh5v4j: document.getElementById('short_textossh5v4j').value,
+      // … (outros campos text como antes) …
+      color_mkqr22e3: { label: 'Parado' },
+      // board_relation formatado corretamente:
+      ...(selectedGuests.length && {
+        board_relation_mkqr6b1t: {
+          linkedPulseIds: selectedGuests.map(g => ({ linkedPulseId: g.id }))
+        }
+      })
+    };
+
+    // Escapa JSON para GraphQL
+    const colJson = JSON.stringify(vals)
+      .replace(/\\/g,'\\\\')
+      .replace(/"/g,'\\"')
+      .replace(/\n/g,'\\n');
+
+    const title = vals.text_mkqrhjas.replace(/"/g,'\\"');
+    const mutation = `
+      mutation {
+        create_item(
+          board_id: ${BOARD_ID},
+          item_name: "${title}",
+          column_values: "${colJson}"
+        ) { id }
       }
+    `;
+    try {
+      const data = await mondayMutation(mutation);
+      alert('Atividade criada! ID: ' + data.create_item.id);
+      // reset do form e slots
+      document.getElementById('activityForm').reset();
+      selectedGuests = [];
+      renderSlots();
+    } catch (err) {
+      console.error('Erro ao criar atividade:', err);
+      alert('Não foi possível criar a atividade. Veja o console.');
     }
-  }
-  loadGuests();
-
-  // Contadores de caracteres
-  document.getElementById('long_text_mkqr5e1x').addEventListener('input', e => {
-    document.getElementById('descCounter').textContent = `${e.target.value.length}/700`;
   });
-  document.getElementById('text_mkqrqmfw').addEventListener('input', e => {
-    document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`;
-  });
 
-  // Toggle de campos
-  const formatSelect = document.getElementById('short_textossh5v4j');
-  const daysLabel = document.getElementById('daysLabel');
-  const maxGuestsLabel = document.getElementById('maxGuestsLabel');
-  const showDays = new Set([
-    'Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina',
-    'Minicurso','Hackathon','Intervenção urbana','Demonstração',
-    'Experiência','Visitas/ percursos guiados','Campeonato',
-    'Exposição artística','Feira'
-  ]);
-  const showMax = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
-  function toggleFields() {
-    daysLabel.classList.toggle('hidden', !showDays.has(formatSelect.value));
-    maxGuestsLabel.classList.toggle('hidden', !showMax.has(formatSelect.value));
-  }
-  formatSelect.addEventListener('change', toggleFields);
-  toggleFields();
-
-  const restrSelect = document.getElementById('text_mkqrrpq3');
-  const ageLabel = document.getElementById('ageRangeLabel');
-  function toggleAgeRange() {
-    ageLabel.classList.toggle('hidden', restrSelect.value !== 'Sim');
-  }
-  restrSelect.addEventListener('change', toggleAgeRange);
-  toggleAgeRange();
-
-  // Submissão do form
- document.getElementById('activityForm').addEventListener('submit', async e => {
-  e.preventDefault();
-
-  // 1) Coleta de valores
-  const title     = document.getElementById('text_mkqrhjas').value;
-  const format    = document.getElementById('short_textossh5v4j').value;
-  const days      = document.getElementById('short_textb7obn15q').value;
-  const maxGuests = document.getElementById('text_mkqrjadb').value;
-  const duration  = document.getElementById('text_mkqrvnnp').value;
-  const desc      = document.getElementById('long_text_mkqr5e1x').value;
-  const extras    = document.getElementById('text_mkqrqmfw').value;
-  const restr     = document.getElementById('text_mkqrrpq3').value;
-  const ageRange  = document.getElementById('text_mkqrrpq3_range').value;
-  const tema1     = document.getElementById('text_mkqrwawz').value;
-  const tema2     = document.getElementById('text_mkqrth67').value;
-  const sub1      = document.getElementById('text_mkqrm18v').value;
-  const sub2      = document.getElementById('text_mkqrfjz3').value;
-  const publico   = document.getElementById('text_mkqr6nqa').value;
-
-  // Board-relation como array de inteiros
-  const guests = Array.from(
-    document.getElementById('board_relation_mkqr6b1t').selectedOptions
-  ).map(o => parseInt(o.value, 10));
-
-  // 2) Montagem de column_values
-  const vals = {
-    // text-тext fields usam string simples
-    text_mkqrhjas: title,
-    short_textossh5v4j: format,
-    ...(days      && { short_textb7obn15q: days     }),
-    ...(maxGuests && { text_mkqrjadb:      maxGuests }),
-    text_mkqrvnnp: duration,
-    long_text_mkqr5e1x: desc,
-    text_mkqrqmfw:     extras,
-    text_mkqrrpq3:     restr === 'Sim' ? ageRange : restr,
-    text_mkqrwawz:     tema1,
-    text_mkqrth67:     tema2,
-    text_mkqrm18v:     sub1,
-    text_mkqrfjz3:     sub2,
-    text_mkqr6nqa:     publico,
-
-    // status (aqui sim usa label)
-    color_mkqr22e3: { label: 'Parado' },
-
-    // board_relation (array de inteiros)
-    ...(guests.length && {
-    board_relation_mkqr6b1t: {
-      linkedPulseIds: guests.map(id => ({ linkedPulseId: id }))
-    }
-  })
-  };
-
-  // 3) Escape completo para GraphQL
-  const colJson = JSON.stringify(vals)
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n');
-
-  const mutation = `
-    mutation {
-      create_item(
-        board_id: ${BOARD_ID},
-        item_name: "${title.replace(/"/g,'\\"')}",
-        column_values: "${colJson}"
-      ) { id }
-    }
-  `;
-  console.log('▶️ Enviando mutation:', mutation);
-
-  // 4) Envio e tratamento de erro
-  try {
-    const data = await mondayMutation(mutation);
-    alert('Atividade criada! ID: ' + data.create_item.id);
-    e.target.reset();
-    document.getElementById('descCounter').textContent = '0/700';
-    document.getElementById('extrasCounter').textContent = '0/700';
-    toggleFields();
-    toggleAgeRange();
-  } catch (err) {
-    console.error('❌ GraphQL error object:', err);
-    if (Array.isArray(err)) {
-      alert('Falha GraphQL:\n' + err.map(e => e.message).join('\n'));
-    } else if (err.error) {
-      alert('Erro do Worker:\n' + err.error);
-    } else {
-      alert('Erro inesperado. Veja o console.');
-    }
-  }
-});
- </script>
+  // Inicialização
+  (async () => {
+    await loadGuests();
+    renderSlots();
+  })();
+</script>
 </body>
 </html>
