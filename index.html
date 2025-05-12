@@ -254,7 +254,7 @@
   let loadedGuests = [];
   let selectedGuests = [];
 
-  // ————— Chamadas GraphQL —————
+  // ————— Função GraphQL genérica —————
   async function mondayMutation(query) {
     const res = await fetch(API_URL, {
       method: 'POST',
@@ -267,16 +267,14 @@
     return j.data;
   }
 
-  // ————— Carrega convidados (com cargo & empresa) —————
+  // ————— Carrega convidados —————
   async function loadGuests() {
     const q = `query {
       boards(ids:[${GUEST_BOARD_ID}]) {
         items_page(limit:100) {
           items {
             id
-            column_values(ids:["text_mkqreer2","text_mkqry55n","text_mkqrghw1"]) {
-              id text
-            }
+            column_values(ids:["text_mkqreer2","text_mkqry55n","text_mkqrghw1"]) { id text }
           }
         }
       }
@@ -286,7 +284,7 @@
       loadedGuests = data.boards[0].items_page.items.map(item => {
         const cols = item.column_values;
         return {
-          id:      parseInt(item.id,10),
+          id:      +item.id,
           name:    cols.find(c=>c.id==="text_mkqreer2")?.text||"",
           cargo:   cols.find(c=>c.id==="text_mkqry55n")?.text||"",
           empresa: cols.find(c=>c.id==="text_mkqrghw1")?.text||""
@@ -298,29 +296,26 @@
     }
   }
 
-  // ————— Renderiza slots de convidados + “+” —————
+  // ————— Renderiza slots —————
   function renderSlots() {
-    const container = document.getElementById('guestSlots');
-    container.innerHTML = '';
+    const c = document.getElementById('guestSlots');
+    c.innerHTML = '';
     selectedGuests.forEach((g,i) => {
-      const div = document.createElement('div');
-      div.className = 'guest-slot';
-      div.textContent = g.name;
+      const d = document.createElement('div');
+      d.className = 'guest-slot';
+      d.textContent = g.name;
       const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'remove';
+      btn.type = 'button'; btn.className = 'remove';
       btn.innerHTML = '&times;';
       btn.onclick = () => { selectedGuests.splice(i,1); renderSlots(); };
-      div.appendChild(btn);
-      container.appendChild(div);
+      d.appendChild(btn);
+      c.appendChild(d);
     });
     if (selectedGuests.length < 6) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.id = 'addGuestBtn';
-      btn.textContent = '+';
-      btn.onclick = openGuestModal;
-      container.appendChild(btn);
+      const b = document.createElement('button');
+      b.type = 'button'; b.id = 'addGuestBtn'; b.textContent = '+';
+      b.onclick = openGuestModal;
+      c.appendChild(b);
     }
   }
 
@@ -343,129 +338,139 @@
       ul.appendChild(li);
     });
   }
-  document.getElementById('guestSearchInput').addEventListener('input', e => {
-    const t = e.target.value.toLowerCase();
-    showSearchResults(
-      loadedGuests.filter(g =>
-        g.name.toLowerCase().includes(t) ||
-        g.cargo.toLowerCase().includes(t) ||
-        g.empresa.toLowerCase().includes(t)
-      ).slice(0,20)
-    );
-  });
+  document.getElementById('guestSearchInput')
+    .addEventListener('input', e => {
+      const t = e.target.value.toLowerCase();
+      showSearchResults(
+        loadedGuests.filter(g =>
+          g.name.toLowerCase().includes(t) ||
+          g.cargo.toLowerCase().includes(t) ||
+          g.empresa.toLowerCase().includes(t)
+        ).slice(0,20)
+      );
+    });
   document.getElementById('closeGuestModal').onclick = closeGuestModal;
 
   // ————— Contadores de caracteres —————
-  const descTA   = document.getElementById('long_text_mkqr5e1x');
-  const extrasTA = document.getElementById('text_mkqrqmfw');
-  descTA.addEventListener('input', e => {
-    document.getElementById('descCounter').textContent = `${e.target.value.length}/700`;
-  });
-  extrasTA.addEventListener('input', e => {
-    document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`;
-  });
+  document.getElementById('long_text_mkqr5e1x')
+    .addEventListener('input', e => {
+      document.getElementById('descCounter').textContent =
+        `${e.target.value.length}/700`;
+    });
+  document.getElementById('text_mkqrqmfw')
+    .addEventListener('input', e => {
+      document.getElementById('extrasCounter').textContent =
+        `${e.target.value.length}/700`;
+    });
 
-  // ————— Toggle de campos dinâmicos —————
-  const formatSelect = document.getElementById('short_textossh5v4j');
-  const daysLabel    = document.getElementById('daysLabel');
-  const maxLabel     = document.getElementById('maxGuestsLabel');
-  const restrSelect  = document.getElementById('text_mkqrrpq3');
-  const ageLabel     = document.getElementById('ageRangeLabel');
-  const showDaysSet  = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon','Intervenção urbana','Demonstração','Experiência','Visitas/ percursos guiados','Campeonato','Exposição artística','Feira']);
-  const showMaxSet   = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
-  function toggleFields() {
-    daysLabel.classList.toggle('hidden', !showDaysSet.has(formatSelect.value));
-    maxLabel.classList.toggle('hidden', !showMaxSet.has(formatSelect.value));
+  // ————— Toggle campos dinâmicos —————
+  const fmt = document.getElementById('short_textossh5v4j');
+  const daysL = document.getElementById('daysLabel');
+  const maxL  = document.getElementById('maxGuestsLabel');
+  const rs    = document.getElementById('text_mkqrrpq3');
+  const ageL  = document.getElementById('ageRangeLabel');
+  const showD = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon','Intervenção urbana','Demonstração','Experiência','Visitas/ percursos guiados','Campeonato','Exposição artística','Feira']);
+  const showM = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
+  function toggleF() {
+    daysL.classList.toggle('hidden', !showD.has(fmt.value));
+    maxL.classList.toggle('hidden', !showM.has(fmt.value));
   }
-  function toggleAge() {
-    ageLabel.classList.toggle('hidden', restrSelect.value !== 'Sim');
+  function toggleA() {
+    ageL.classList.toggle('hidden', rs.value !== 'Sim');
   }
-  formatSelect.addEventListener('change', toggleFields);
-  restrSelect.addEventListener('change', toggleAge);
-  toggleFields();
-  toggleAge();
+  fmt.addEventListener('change', toggleF);
+  rs.addEventListener('change', toggleA);
+  toggleF(); toggleA();
 
-  // ————— Submissão do formulário —————
-  document.getElementById('activityForm').addEventListener('submit', async e => {
-    e.preventDefault();
+  // ————— Submissão do form —————
+  document.getElementById('activityForm')
+    .addEventListener('submit', async e => {
+      e.preventDefault();
+      // coleta
+      const tRaw = document.getElementById('text_mkqrhjas').value;
+      const tEsc = tRaw.replace(/"/g,'\\"');
+      const fmtV = fmt.value;
+      const daysV= document.getElementById('short_textb7obn15q').value;
+      const maxV = document.getElementById('text_mkqrjadb').value;
+      const dur  = document.getElementById('text_mkqrvnnp').value;
+      const des  = document.getElementById('long_text_mkqr5e1x').value;
+      const ext  = document.getElementById('text_mkqrqmfw').value;
+      const rsV  = rs.value;
+      const agV  = document.getElementById('text_mkqrrpq3_range').value;
+      const t1   = document.getElementById('text_mkqrwawz').value;
+      const t2   = document.getElementById('text_mkqrth67').value;
+      const s1   = document.getElementById('text_mkqrm18v').value;
+      const s2   = document.getElementById('text_mkqrfjz3').value;
+      const pub  = document.getElementById('text_mkqr6nqa').value;
+      const guestIds = selectedGuests.map(g=>g.id);
 
-    // 1) Captura valores
-    const titleRaw   = document.getElementById('text_mkqrhjas').value;
-    const titleEsc   = titleRaw.replace(/"/g,'\\"');
-    const format     = formatSelect.value;
-    const days       = document.getElementById('short_textb7obn15q').value;
-    const maxGuests  = document.getElementById('text_mkqrjadb').value;
-    const duration   = document.getElementById('text_mkqrvnnp').value;
-    const desc       = descTA.value;
-    const extras     = extrasTA.value;
-    const restr      = restrSelect.value;
-    const ageRange   = document.getElementById('text_mkqrrpq3_range').value;
-    const tema1      = document.getElementById('text_mkqrwawz').value;
-    const tema2      = document.getElementById('text_mkqrth67').value;
-    const sub1       = document.getElementById('text_mkqrm18v').value;
-    const sub2       = document.getElementById('text_mkqrfjz3').value;
-    const publico    = document.getElementById('text_mkqr6nqa').value;
-    const guests     = selectedGuests.map(g => g.id);
+      // monta vals
+      const vals = {
+        text_mkqrhjas:      tRaw,
+        short_textossh5v4j: fmtV,
+        ...(daysV && { short_textb7obn15q: daysV }),
+        ...(maxV  && { text_mkqrjadb:      maxV }),
+        text_mkqrvnnp:      dur,
+        long_text_mkqr5e1x: des,
+        text_mkqrqmfw:      ext,
+        text_mkqrrpq3:      rsV==='Sim'?agV:rsV,
+        text_mkqrwawz:      t1,
+        text_mkqrth67:      t2,
+        text_mkqrm18v:      s1,
+        text_mkqrfjz3:      s2,
+        text_mkqr6nqa:      pub,
+        color_mkqr22e3:     { label:'Parado' },
+        ...(guestIds.length && {
+          board_relation_mkqr6b1t:{
+            linkedPulseIds: guestIds.map(id=>({ linkedPulseId:id }))
+          }})
+      };
 
-    // 2) Monta column_values
-    const vals = {
-      text_mkqrhjas:      titleRaw,
-      short_textossh5v4j: format,
-      ...(days      && { short_textb7obn15q: days     }),
-      ...(maxGuests && { text_mkqrjadb:      maxGuests }),
-      text_mkqrvnnp:      duration,
-      long_text_mkqr5e1x: desc,
-      text_mkqrqmfw:      extras,
-      text_mkqrrpq3:      restr === 'Sim' ? ageRange : restr,
-      text_mkqrwawz:      tema1,
-      text_mkqrth67:      tema2,
-      text_mkqrm18v:      sub1,
-      text_mkqrfjz3:      sub2,
-      text_mkqr6nqa:      publico,
-      color_mkqr22e3:     { label: 'Parado' },
-      ...(guests.length && {
-        board_relation_mkqr6b1t: {
-          linkedPulseIds: guests.map(id => ({ linkedPulseId: id }))
+      // stringify + escape
+      const colJson = JSON.stringify(vals)
+        .replace(/\\/g,'\\\\')
+        .replace(/"/g,'\\"')
+        .replace(/\n/g,'\\n');
+      const mutation = `
+        mutation {
+          create_item(
+            board_id: ${BOARD_ID},
+            item_name: "${tEsc}",
+            column_values: "${colJson}"
+          ) { id }
         }
-      })
-    };
-
-    // 3) Escape JSON e monta mutation
-    const colJson = JSON.stringify(vals)
-      .replace(/\\/g,'\\\\')
-      .replace(/"/g,'\\"')
-      .replace(/\n/g,'\\n');
-    const mutation = `
-      mutation {
-        create_item(
-          board_id: ${BOARD_ID},
-          item_name: "${titleEsc}",
-          column_values: "${colJson}"
-        ) { id }
+      `;
+      // envia
+      try {
+        const data = await mondayMutation(mutation);
+        alert('Atividade criada! ID: '+data.create_item.id);
+        document.getElementById('activityForm').reset();
+        selectedGuests=[];
+        renderSlots();
+        toggleF(); toggleA();
+      } catch(err) {
+        if(Array.isArray(err)) {
+          err.forEach((e,i)=>{
+            console.error(`❌ GraphQL [${i}]:`,e.message,e.extensions?.error_data);
+          });
+          alert('Falha:\n'+err.map(e=>e.message).join('\n'));
+        } else if(err.error){
+          console.error('Worker:',err.error);
+          alert('Worker:\n'+err.error);
+        } else {
+          console.error('Unexpected:',err);
+          alert('Erro inesperado. Veja console.');
+        }
       }
-    `;
+    });
 
-    // 4) Envia e trata resposta
-    try {
-      const data = await mondayMutation(mutation);
-      alert('Atividade criada! ID: ' + data.create_item.id);
-      document.getElementById('activityForm').reset();
-      selectedGuests = [];
-      renderSlots();
-      toggleFields();
-      toggleAge();
-    } catch (err) {
-      console.error('Erro ao criar atividade:', err);
-      alert('Falha ao criar atividade. Veja o console.');
-    }
-  });
-
-  // ————— Inicialização —————
-  (async () => {
+  // ————— Inicializa —————
+  (async()=>{
     await loadGuests();
     renderSlots();
   })();
 </script>
+
 
 </body>
 </html>
