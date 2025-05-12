@@ -26,7 +26,7 @@
   </style>
 </head>
 <body>
-  <h1> cu atividade</h1>
+  <h1> aaaaa atividade</h1>
   <form id="activityForm">
     <label>
       Nome da Atividade:
@@ -235,7 +235,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSlots();
   };
 
-  // — Tema → Subtema —
   const subtemasPorTema = {
     "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
     "Comunicação": ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/Industrial","Podcast"],
@@ -270,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
         div.textContent = sub;
         div.onclick = () => {
           hid.value = `${tema} → ${sub}`;
-          cont.querySelectorAll('.subtema-item').forEach(el => el.style.fontWeight = '');
+          cont.querySelectorAll('.subtema-item').forEach(el => el.style.fontWeight='');
           div.style.fontWeight = 'bold';
         };
         det.appendChild(div);
@@ -281,13 +280,11 @@ document.addEventListener('DOMContentLoaded', () => {
   buildTree('temaPrincipalTree','temaPrincipalValue');
   buildTree('temaSecundarioTree','temaSecundarioValue');
 
-  // — Contadores de caracteres —
   document.getElementById('long_text_mkqr5e1x')
     .addEventListener('input', e => document.getElementById('descCounter').textContent = `${e.target.value.length}/700`);
   document.getElementById('text_mkqrqmfw')
     .addEventListener('input', e => document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`);
 
-  // — Campos dinâmicos —
   const fmt   = document.getElementById('short_textossh5v4j'),
         daysL = document.getElementById('daysLabel'),
         maxL  = document.getElementById('maxGuestsLabel'),
@@ -305,11 +302,10 @@ document.addEventListener('DOMContentLoaded', () => {
   fmt.dispatchEvent(new Event('change'));
   rs.dispatchEvent(new Event('change'));
 
-  // — Submissão do formulário —
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
 
-    // 1) Cria novos convidados no Monday
+    // 1) Cria convidados
     if (guestsToCreate.length) {
       for (const g of guestsToCreate) {
         const cols = { text_mkqreer2: g.name };
@@ -331,22 +327,20 @@ document.addEventListener('DOMContentLoaded', () => {
       guestsToCreate = [];
     }
 
-    // 2) Coleta campos da atividade
-    const title      = document.getElementById('text_mkqrhjas').value.trim();
-    const titleEsc   = title.replace(/"/g,'\\"');
-    const days       = document.getElementById('short_textb7obn15q').value;
-    const maxG       = document.getElementById('text_mkqrjadb').value;
-    const duration   = document.getElementById('text_mkqrvnnp').value.trim();
-    const desc       = document.getElementById('long_text_mkqr5e1x').value.trim();
-    const extras     = document.getElementById('text_mkqrqmfw').value.trim();
-    const restr      = document.getElementById('text_mkqrrpq3').value;
-    const ageRange   = document.getElementById('text_mkqrrpq3_range').value.trim();
-    const pub        = document.getElementById('text_mkqr6nqa').value;
-    const guestIds   = selectedGuests.map(g => g.id);
+    // 2) Monta atividade
+    const title    = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
+    const days     = document.getElementById('short_textb7obn15q').value;
+    const maxG     = document.getElementById('text_mkqrjadb').value;
+    const duration = document.getElementById('text_mkqrvnnp').value.replace(/"/g,'\\"');
+    const desc     = document.getElementById('long_text_mkqr5e1x').value.replace(/"/g,'\\"');
+    const extras   = document.getElementById('text_mkqrqmfw').value.replace(/"/g,'\\"');
+    const restr    = document.getElementById('text_mkqrrpq3').value;
+    const ageRange = document.getElementById('text_mkqrrpq3_range').value.replace(/"/g,'\\"');
+    const pub      = document.getElementById('text_mkqr6nqa').value;
+    const guestIds = selectedGuests.map(g => parseInt(g.id, 10));
     const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
     const [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
 
-    // 3) Monta column_values da atividade
     const vals = {
       text_mkqrhjas:      title,
       short_textossh5v4j: fmt.value,
@@ -368,19 +362,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       })
     };
+
     const colJson = JSON.stringify(vals)
       .replace(/\\/g,'\\\\')
       .replace(/"/g,'\\"')
       .replace(/\n/g,'\\n');
+
     const mutation = `
       mutation {
         create_item(
           board_id: ${BOARD_ID},
-          item_name: "${titleEsc}",
+          item_name: "${title}",
           column_values: "${colJson}"
         ) { id }
       }
     `;
+
     try {
       const resp = await mondayMutation(mutation);
       alert('Atividade criada! ID: ' + resp.create_item.id);
@@ -400,6 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderSlots();
 });
 </script>
+
 
 </body>
 </html>
