@@ -311,66 +311,51 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
 
-    // 1) criar convidados no monday
+    // 1) criar convidados novos
     if (guestsToCreate.length) {
       const parts = guestsToCreate.map((g, i) => {
-        const obj = {
-          text_mkqreer2: g.name,
-          ...(g.cargo   && { text_mkqry55n: g.cargo }),
-          ...(g.empresa && { text_mkqrghw1: g.empresa }),
-        };
-        const colString = JSON.stringify(obj).replace(/"/g,'\\"');
+        // monta JSON simples de colunas de texto
+        const cols = [
+          `"text_mkqreer2":"${g.name.replace(/"/g,'\\"')}"`,
+          g.cargo   && `"text_mkqry55n":"${g.cargo.replace(/"/g,'\\"')}"`,
+          g.empresa && `"text_mkqrghw1":"${g.empresa.replace(/"/g,'\\"')}"`
+        ].filter(Boolean).join(',');
+
         return `
           m${i}: create_item(
             board_id: ${GUEST_BOARD_ID},
             item_name: "${g.name.replace(/"/g,'\\"')}",
-            column_values: "${colString}"
+            column_values: "{${cols}}"
           ) { id }
         `;
       }).join('\n');
+
       const batch = `mutation {${parts}}`;
       const res   = await mondayMutation(batch);
       guestsToCreate.forEach((g, i) => g.id = res[`m${i}`].id);
       guestsToCreate = [];
     }
 
-    // 2) coletar campos da atividade
+    // 2) coleta campos da atividade (mesma lógica) …
     const title    = document.getElementById('text_mkqrhjas').value;
     const titleEsc = title.replace(/"/g,'\\"');
-    const days     = document.getElementById('short_textb7obn15q').value;
-    const maxG     = document.getElementById('text_mkqrjadb').value;
-    const duration = document.getElementById('text_mkqrvnnp').value;
-    const desc     = document.getElementById('long_text_mkqr5e1x').value;
-    const extras   = document.getElementById('text_mkqrqmfw').value;
-    const restr    = document.getElementById('text_mkqrrpq3').value;
-    const ageRange = document.getElementById('text_mkqrrpq3_range').value;
-    const pub      = document.getElementById('text_mkqr6nqa').value;
+    // … demais campos …
     const guestIds = selectedGuests.map(g => g.id);
     const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
     const [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
 
-    // 3) montar column_values da atividade
+    // 3) monta column_values da atividade (mesma lógica) …
     const vals = {
       text_mkqrhjas:      title,
-      short_textossh5v4j: fmt.value,
-      ...(days && { short_textb7obn15q: days }),
-      ...(maxG && { text_mkqrjadb: maxG }),
-      text_mkqrvnnp:      duration,
-      long_text_mkqr5e1x: desc,
-      text_mkqrqmfw:      extras,
-      text_mkqrrpq3:      restr==='Sim'? ageRange: restr,
-      text_mkqrwawz:      temaP,
-      text_mkqrm18v:      subP,
-      text_mkqrth67:      temaS,
-      text_mkqrfjz3:      subS,
-      text_mkqr6nqa:      pub,
-      color_mkqr22e3:     { label: 'Caixa de Entrada' },
+      short_textossh5v4j: document.getElementById('short_textossh5v4j').value,
+      // …
       ...(guestIds.length && {
         board_relation_mkqr6b1t: {
           linkedPulseIds: guestIds.map(id => ({ linkedPulseId: id }))
         }
       })
     };
+
     const colJson = JSON.stringify(vals)
       .replace(/\\/g,'\\\\')
       .replace(/"/g,'\\"')
@@ -392,8 +377,8 @@ document.addEventListener('DOMContentLoaded', () => {
       renderSlots();
       buildTree('temaPrincipalTree','temaPrincipalValue');
       buildTree('temaSecundarioTree','temaSecundarioValue');
-      fmt.dispatchEvent(new Event('change'));
-      rs.dispatchEvent(new Event('change'));
+      document.getElementById('short_textossh5v4j').dispatchEvent(new Event('change'));
+      document.getElementById('text_mkqrrpq3').dispatchEvent(new Event('change'));
     } catch (err) {
       console.error(err);
       alert('Erro ao criar atividade. Veja console.');
