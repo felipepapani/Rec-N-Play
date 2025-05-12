@@ -267,3 +267,39 @@ button[type="submit"]:active {
     padding: 1rem;
   }
 }
+
+
+/* ————— Botões do Modal ————— */
+.modal .content button {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  margin-top: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--border-radius);
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+/* Botão de salvar convidado */
+#saveGuestBtn {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+#saveGuestBtn:hover {
+  background-color: #7a26cc; /* tom levemente mais escuro */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Botão de fechar modal */
+#closeGuestModalBtn {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+#closeGuestModalBtn:hover {
+  background-color: #7a26cc; /* tom levemente mais escuro */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
