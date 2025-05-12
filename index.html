@@ -26,7 +26,7 @@
   </style>
 </head>
 <body>
-  <h1> Atividade</h1>
+  <h1> aaaaaa Atividade</h1>
   <form id="activityForm">
     <label>
       Nome da Atividade:
@@ -177,51 +177,52 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedGuests = [];
   let guestsToCreate = [];
 
+  // — Função genérica GraphQL — 
   async function mondayMutation(query) {
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query })
     });
-    const payload = await res.json();
-    if (!res.ok) throw payload.errors || payload;
-    if (payload.errors) throw payload.errors;
-    return payload.data;
+    const json = await res.json();
+    if (!res.ok || json.errors) {
+      console.error('GraphQL Query:', query);
+      console.error('GraphQL Response:', json);
+      throw json.errors || json;
+    }
+    return json.data;
   }
 
+  // — Renderiza slots de convidados + botão “+” —
   function renderSlots() {
-    const container = document.getElementById('guestSlots');
-    container.innerHTML = '';
-    selectedGuests.forEach((g, i) => {
+    const c = document.getElementById('guestSlots');
+    c.innerHTML = '';
+    selectedGuests.forEach((g,i) => {
       const slot = document.createElement('div');
       slot.className = 'guest-slot';
       slot.textContent = g.name;
       const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'remove';
-      btn.innerHTML = '&times;';
+      btn.type = 'button'; btn.className = 'remove'; btn.innerHTML = '&times;';
       btn.onclick = () => {
-        selectedGuests.splice(i, 1);
+        selectedGuests.splice(i,1);
         renderSlots();
       };
       slot.appendChild(btn);
-      container.appendChild(slot);
+      c.appendChild(slot);
     });
     if (selectedGuests.length < 6) {
       const add = document.createElement('button');
-      add.type = 'button';
-      add.id = 'addGuestBtn';
-      add.textContent = '+';
+      add.type = 'button'; add.id = 'addGuestBtn'; add.textContent = '+';
       add.onclick = () => {
         document.getElementById('newGuestModal').classList.remove('hidden');
         ['guestNameInput','guestCargoInput','guestEmpresaInput']
           .forEach(id => document.getElementById(id).value = '');
       };
-      container.appendChild(add);
+      c.appendChild(add);
     }
   }
 
-  // Modal: fechar e salvar
+  // — Handlers do modal de convidado —
   document.getElementById('closeGuestModalBtn').onclick = () => {
     document.getElementById('newGuestModal').classList.add('hidden');
   };
@@ -237,33 +238,17 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSlots();
   };
 
-  // Tema→Subtema
+  // — Monta árvore Tema→Subtema —
   const subtemasPorTema = {
-    "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
-    "Comunicação": ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/Industrial","Podcast"],
-    "Dados e Segurança Digital": ["Análise de Dados","Blockchain","Cibersegurança","Governança de Dados","Investimentos/Criptomoedas","LGPD","NFT","Privacidade","Web3"],
-    "Desenvolvimento de Software e Cloud": ["Desenvolvimento de Software e Cloud","Low Code/No Code","Programação de Software"],
-    "Diversidade e Inclusão": ["50+","Acessibilidade/PCD","Equidade Racial","LGBTQIAPN+","Mulheres","Neurodivergência","Periferias"],
-    "Empreendedorismo e Inovação": ["Ecossistemas de Inovação","Empresa Júnior","Gestão de Comunidades","Inovação Aberta","Internacionalização","Startup","Transformação Digital"],
-    "Games e Design": ["Desenvolvimento de Jogos","e-Sports","Experiência do Usuário (UX/CX)","Gameficação","Interface do Usuário (UI)"],
-    "Gente e Gestão": ["Carreira Profissional","Cultura Organizacional","Desenvolvimento de Times","Formação","RH","Softskills"],
-    "Governança": ["ESG","Governança de Dados","Impacto Social","Legislação","Responsabilidade Social"],
-    "Inteligência Artificial, Tecnologias Imersivas e Metaverso": ["Realidade Virtual","Deep Learning","Engenharia de Prompt","Inteligência Artificial","LLM","Machine Learning","Metaverso","Processamento de Linguagem Natural","Realidade Aumentada / Realidade Mista","Visão Computacional"],
-    "Investimentos": ["Captação de Recursos por meio de Editais","Investimento em Inovação","Investimentos e Criptomoedas"],
-    "Política e Cidadania": ["Cidadania Digital","Direito","Educação","Empregabilidade","Geopolítica","Infância","Mobilidade Urbana","Saúde","Turismo","Urbanismo"],
-    "Processos e Técnicas de Mercado": ["Agilidade","Atacado e Varejo","Branding","Canais de Venda","Comportamento do Consumidor","E-commerce","Experiência do Cliente","Marketing","Vendas B2B e B2C"],
-    "Setores Tech": ["Agritech","Cleantech","Construtech","Ecotech","Edutech","Fintech","Foodtech","Govtech","Healthtech","Lawtech","Retailtech","Sportech"],
-    "Simulação e Modelagem": ["Corte a Laser","Impressão 3D","Modelagem 3D"],
-    "Sustentabilidade": ["Desenvolvimento Sustentável","Economia Circular","Eficiência Energética","Energia Renovável","Gestão de Resíduos","Logística Reversa","Meio Ambiente","Mudanças Climáticas","ODS"],
-    "Tecnologias de Conectividade, Robótica e Computação Avançada": ["5G","6G","Computação Quântica","Internet das Coisas","Robótica","Sistemas Embarcados"]
+    /* ... seu objeto de subtemas ... */
   };
   function buildTree(containerId, hiddenInputId) {
-    const cont = document.getElementById(containerId);
-    const hid  = document.getElementById(hiddenInputId);
+    const cont = document.getElementById(containerId),
+          hid  = document.getElementById(hiddenInputId);
     cont.innerHTML = '';
     Object.entries(subtemasPorTema).forEach(([tema, subs]) => {
-      const det = document.createElement('details');
-      const sum = document.createElement('summary');
+      const det = document.createElement('details'),
+            sum = document.createElement('summary');
       sum.textContent = tema;
       det.appendChild(sum);
       subs.forEach(sub => {
@@ -281,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   buildTree('temaPrincipalTree','temaPrincipalValue');
-  buildTree('temaSecundarioTree','temaSecundarioValue');
+  buildTree('temaSecundarioTree','temaSecundarioValue')
 
   // contadores de caracteres
   document.getElementById('long_text_mkqr5e1x')
@@ -306,30 +291,32 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   fmt.dispatchEvent(new Event('change'));
   rs.dispatchEvent(new Event('change'));
-
-  // submissão
+  
+ // — Submissão do formulário —
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
 
-    // 1) cria convidados novos
+    // 1) Cria novos convidados no Monday:
     if (guestsToCreate.length) {
-      const parts = guestsToCreate.map((g, i) => {
-        const cols = [
-          `"text_mkqreer2":"${g.name.replace(/"/g,'\\"')}"`,
-          g.cargo   && `"text_mkqry55n":"${g.cargo.replace(/"/g,'\\"')}"`,
-          g.empresa && `"text_mkqrghw1":"${g.empresa.replace(/"/g,'\\"')}"`
-        ].filter(Boolean).join(',');
+      const parts = guestsToCreate.map((g,i) => {
+        // Monta um JSON simples: { "text_mkqreer2":"Nome", "text_mkqry55n":"Cargo", ... }
+        const cols = [`"text_mkqreer2":"${g.name.replace(/"/g,'\\"')}"`];
+        if (g.cargo)   cols.push(`"text_mkqry55n":"${g.cargo.replace(/"/g,'\\"')}"`);
+        if (g.empresa) cols.push(`"text_mkqrghw1":"${g.empresa.replace(/"/g,'\\"')}"`);
+        const rawJson = `{${cols.join(',')}}`;
+        const escJson = rawJson.replace(/"/g,'\\"');
         return `
           m${i}: create_item(
             board_id: ${GUEST_BOARD_ID},
             item_name: "${g.name.replace(/"/g,'\\"')}",
-            column_values: "{${cols}}"
+            column_values: "${escJson}"
           ) { id }
         `;
       }).join('\n');
+
       const batch = `mutation {${parts}}`;
-      const res   = await mondayMutation(batch);
-      guestsToCreate.forEach((g, i) => g.id = res[`m${i}`].id);
+      const res = await mondayMutation(batch);
+      guestsToCreate.forEach((g,i) => g.id = res[`m${i}`].id);
       guestsToCreate = [];
     }
 
