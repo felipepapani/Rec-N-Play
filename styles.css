@@ -1,3 +1,8 @@
+#temaPrincipalSelect,
+#temaSecundarioSelect {
+  width: 100%;
+}
+
 :root {
   /* Cores do REC n Play 2025 */
   --primary-color: #8A2BE2;
