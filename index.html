@@ -26,7 +26,7 @@
   </style>
 </head>
 <body>
-  <h1> dsd Atividade</h1>
+  <h1> cu atividade</h1>
   <form id="activityForm">
     <label>
       Nome da Atividade:
@@ -305,17 +305,21 @@ document.addEventListener('DOMContentLoaded', () => {
   fmt.dispatchEvent(new Event('change'));
   rs.dispatchEvent(new Event('change'));
 
-  // — Submissão do formulário —
+  // submissão do form
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
 
     // 1) cria novos convidados
     if (guestsToCreate.length) {
       const parts = guestsToCreate.map((g,i) => {
-        const cols = [`"text_mkqreer2":"${g.name.replace(/"/g,'\\"')}"`];
-        if (g.cargo)   cols.push(`"text_mkqry55n":"${g.cargo.replace(/"/g,'\\"')}"`);
-        if (g.empresa) cols.push(`"text_mkqrghw1":"${g.empresa.replace(/"/g,'\\"')}"`);
-        const esc = `{${cols.join(',')}}`.replace(/"/g,'\\"');
+        // **AGORA** cada coluna é { text: "valor" }
+        const payload = {
+          text_mkqreer2: { text: g.name },
+          ...(g.cargo   && { text_mkqry55n: { text: g.cargo } }),
+          ...(g.empresa && { text_mkqrghw1: { text: g.empresa } })
+        };
+        // serializa e escapa
+        const esc = JSON.stringify(payload).replace(/"/g,'\\"');
         return `
           m${i}: create_item(
             board_id: ${GUEST_BOARD_ID},
@@ -331,21 +335,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 2) coleta campos da atividade
-    const title      = document.getElementById('text_mkqrhjas').value.trim();
-    const titleEsc   = title.replace(/"/g,'\\"');
-    const days       = document.getElementById('short_textb7obn15q').value;
-    const maxG       = document.getElementById('text_mkqrjadb').value;
-    const duration   = document.getElementById('text_mkqrvnnp').value.trim();
-    const desc       = document.getElementById('long_text_mkqr5e1x').value.trim();
-    const extras     = document.getElementById('text_mkqrqmfw').value.trim();
-    const restr      = document.getElementById('text_mkqrrpq3').value;
-    const ageRange   = document.getElementById('text_mkqrrpq3_range').value.trim();
-    const pub        = document.getElementById('text_mkqr6nqa').value;
-    const guestIds   = selectedGuests.map(g => g.id);
+    const title    = document.getElementById('text_mkqrhjas').value.trim();
+    const titleEsc = title.replace(/"/g,'\\"');
+    const days     = document.getElementById('short_textb7obn15q').value;
+    const maxG     = document.getElementById('text_mkqrjadb').value;
+    const duration = document.getElementById('text_mkqrvnnp').value.trim();
+    const desc     = document.getElementById('long_text_mkqr5e1x').value.trim();
+    const extras   = document.getElementById('text_mkqrqmfw').value.trim();
+    const restr    = document.getElementById('text_mkqrrpq3').value;
+    const ageRange = document.getElementById('text_mkqrrpq3_range').value.trim();
+    const pub      = document.getElementById('text_mkqr6nqa').value;
+    const guestIds = selectedGuests.map(g=>g.id);
     const [temaP,subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
     const [temaS,subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
 
-    // 3) monta column_values (omitindo temas vazios)
+    // 3) column_values da atividade (omitindo vazio)
     const vals = {
       text_mkqrhjas:      title,
       short_textossh5v4j: fmt.value,
@@ -363,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
       color_mkqr22e3:     { label:'Caixa de Entrada' },
       ...(guestIds.length && {
         board_relation_mkqr6b1t:{
-          linkedPulseIds: guestIds.map(id => ({ linkedPulseId:id }))
+          linkedPulseIds: guestIds.map(id=>({ linkedPulseId:id }))
         }
       })
     };
@@ -382,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     try {
       const resp = await mondayMutation(mutation);
-      alert('Atividade criada! ID: ' + resp.create_item.id);
+      alert('Atividade criada! ID: '+resp.create_item.id);
       e.target.reset();
       selectedGuests = [];
       renderSlots();
@@ -399,6 +403,5 @@ document.addEventListener('DOMContentLoaded', () => {
   renderSlots();
 });
 </script>
-
 </body>
 </html>
