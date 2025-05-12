@@ -26,7 +26,7 @@
   </style>
 </head>
 <body>
-  <h1>Nova Atividade</h1>
+  <h1>Noaa Atividade</h1>
   <form id="activityForm">
     <label>
       Nome da Atividade:
@@ -306,11 +306,13 @@
       // 1) cria convidados novos
       if (guestsToCreate.length) {
         const parts = guestsToCreate.map((g,i) => {
+          // monta o JSON das colunas dinamicamente
           const cols = [];
           cols.push(`"text_mkqreer2":"${g.name.replace(/"/g,'\\"')}"`);
           if (g.cargo)   cols.push(`"text_mkqry55n":"${g.cargo.replace(/"/g,'\\"')}"`);
           if (g.empresa) cols.push(`"text_mkqrghw1":"${g.empresa.replace(/"/g,'\\"')}"`);
           const colString = `{${cols.join(',')}}`;
+
           return `
             m${i}: create_item(
               board_id: ${GUEST_BOARD_ID},
@@ -323,10 +325,7 @@
         const batch = `mutation {
           ${parts}
         }`;
-
-        console.log(batch);     // <–– sempre bom inspecionar o texto gerado
-        const res = await mondayMutation(batch);
-        // preencha os IDs retornados em guestsToCreate…
+        // aí você faz mondayMutation(batch)...
       }
       // 2) coleta form
       const title  = document.getElementById('text_mkqrhjas').value,
