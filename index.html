@@ -80,59 +80,16 @@
       <div class="char-counter" id="descCounter">0/700</div>
     </label>
 
-    <label id="temaPrincipalContainer">
-      Tema Principal → Subtema:
-      <select id="temaPrincipalSelect">
-        <option value="">-- selecione o tema --</option>
-        <option>Artes e Cultura</option>
-        <option>Comunicação</option>
-        <option>Dados e Segurança Digital</option>
-        <option>Desenvolvimento de Software e Cloud</option>
-        <option>Diversidade e Inclusão</option>
-        <option>Empreendedorismo e Inovação</option>
-        <option>Games e Design</option>
-        <option>Gente e Gestão</option>
-        <option>Governança</option>
-        <option>Inteligência Artificial, Tecnologias Imersivas e Metaverso</option>
-        <option>Investimentos</option>
-        <option>Política e Cidadania</option>
-        <option>Processos e Técnicas de Mercado</option>
-        <option>Setores Tech</option>
-        <option>Simulação e Modelagem</option>
-        <option>Sustentabilidade</option>
-        <option>Tecnologias de Conectividade, Robótica e Computação Avançada</option>
-      </select>
-      <small id="temaPrincipalHint" class="hidden">
-        Escolha um subtema para “<span id="temaPrincipalChosen"></span>”
-      </small>
+    <label>
+      Tema Principal:
+      <div id="temaPrincipalTree"></div>
+      <input type="hidden" id="temaPrincipalValue" name="temaPrincipalValue">
     </label>
 
-    <!-- Tema Secundário → Subtema Secundário -->
-    <label id="temaSecundarioContainer">
-      Tema Secundário → Subtema:
-      <select id="temaSecundarioSelect">
-        <option value="">-- selecione o tema --</option>
-        <option>Artes e Cultura</option>
-        <option>Comunicação</option>
-        <option>Dados e Segurança Digital</option>
-        <option>Desenvolvimento de Software e Cloud</option>
-        <option>Diversidade e Inclusão</option>
-        <option>Empreendedorismo e Inovação</option>
-        <option>Games e Design</option>
-        <option>Gente e Gestão</option>
-        <option>Governança</option>
-        <option>Inteligência Artificial, Tecnologias Imersivas e Metaverso</option>
-        <option>Investimentos</option>
-        <option>Política e Cidadania</option>
-        <option>Processos e Técnicas de Mercado</option>
-        <option>Setores Tech</option>
-        <option>Simulação e Modelagem</option>
-        <option>Sustentabilidade</option>
-        <option>Tecnologias de Conectividade, Robótica e Computação Avançada</option>
-      </select>
-      <small id="temaSecundarioHint" class="hidden">
-        Escolha um subtema para “<span id="temaSecundarioChosen"></span>”
-      </small>
+    <label>
+      Tema Secundário:
+      <div id="temaSecundarioTree"></div>
+      <input type="hidden" id="temaSecundarioValue" name="temaSecundarioValue">
     </label>
 
     
@@ -207,7 +164,7 @@
   </div>  
 
 <script>
-  // ————— Configurações —————
+  // ————— Configurações gerais —————
   const API_URL        = 'https://plain-butterfly-7001.programacao-e50.workers.dev';
   const BOARD_ID       = 9099133664;
   const GUEST_BOARD_ID = 9102764459;
@@ -316,101 +273,61 @@
     });
   document.getElementById('closeGuestModal').onclick = closeGuestModal;
 
-  // ————— Helper para cascata Tema→Subtema com “← Voltar” —————
-  function setupCascade({ themeSelectId, hintId, chosenSpanId }) {
-    const sel    = document.getElementById(themeSelectId);
-    const hint   = document.getElementById(hintId);
-    const chosen = document.getElementById(chosenSpanId);
-    let temaSel  = null;
+  // ————— Subtemas por tema —————
+  const subtemasPorTema = {
+    "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
+    "Comunicação":      ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/ Industrial","Podcast"],
+    "Dados e Segurança Digital": ["Análise de Dados","Blockchain","Cibersegurança","Governança de Dados","Investimentos / Criptomoedas","LGPD","NFT","Privacidade","Web3"],
+    "Desenvolvimento de Software e Cloud": ["Desenvolvimento de Software e Cloud","Low Code / No Code","Programação de Software"],
+    "Diversidade e Inclusão": ["50+","Acessibilidade / PCD","Equidade Racial","LGBTQIAPN+","Mulheres","Neurodivergência","Periferias"],
+    "Empreendedorismo e Inovação": ["Ecossistemas de Inovação","Empresa Júnior","Gestão de Comunidades","Inovação Aberta","Internacionalização","Startup","Transformação Digital"],
+    "Games e Design":    ["Desenvolvimento de Jogos","e-Sports","Experiência do Usuário (UX / CX)","Gameficação","Interface do Usuário (UI)"],
+    "Gente e Gestão":    ["Carreira Profissional","Cultura Organizacional","Desenvolvimento de Times","Formação","RH","Softskills"],
+    "Governança":        ["ESG","Governança de Dados","Impacto Social","Legislação","Responsabilidade Social"],
+    "Inteligência Artificial, Tecnologias Imersivas e Metaverso": ["Realidade Virtual","Deep Learning","Engenharia de Prompt","Inteligência Artificial","LLM","Machine Learning","Metaverso","Processamento de Linguagem Natural","Realidade Aumentada / Realidade Mista","Visão Computacional"],
+    "Investimentos":     ["Captação de Recursos por meio de Editais","Investimento em Inovação","Investimentos e Criptomoedas"],
+    "Política e Cidadania": ["Cidadania Digital","Direito","Educação","Empregabilidade","Geopolítica","Infância","Mobilidade Urbana","Saúde","Turismo","Urbanismo"],
+    "Processos e Técnicas de Mercado": ["Agilidade","Atacado e Varejo","Branding","Canais de Venda","Comportamento do Consumidor","E-commerce","Experiência do Cliente","Marketing","Vendas B2B e B2C"],
+    "Setores Tech":      ["Agritech","Cleantech","Construtech","Ecotech","Edutech","Fintech","Foodtech","Govtech","Healthtech","Lawtech","Retailtech","Sportech"],
+    "Simulação e Modelagem": ["Corte a Laser","Impressão 3D","Modelagem 3D"],
+    "Sustentabilidade":  ["Desenvolvimento Sustentável","Economia Circular","Eficiência Energética","Energia Renovável","Gestão de Resíduos","Logística Reversa","Meio Ambiente","Mudanças Climáticas","ODS"],
+    "Tecnologias de Conectividade, Robótica e Computação Avançada": ["5G","6G","Computação Quântica","Internet das Coisas","Robótica","Sistemas Embarcados"]
+  };
 
-    // definição estática de subtemas
-    const subtemasPorTema = {
-      "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
-      "Comunicação":      ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/ Industrial","Podcast"],
-      "Dados e Segurança Digital": ["Análise de Dados","Blockchain","Cibersegurança","Governança de Dados","Investimentos / Criptomoedas","LGPD","NFT","Privacidade","Web3"],
-      "Desenvolvimento de Software e Cloud": ["Desenvolvimento de Software e Cloud","Low Code / No Code","Programação de Software"],
-      "Diversidade e Inclusão": ["50+","Acessibilidade / PCD","Equidade Racial","LGBTQIAPN+","Mulheres","Neurodivergência","Periferias"],
-      "Empreendedorismo e Inovação": ["Ecossistemas de Inovação","Empresa Júnior","Gestão de Comunidades","Inovação Aberta","Internacionalização","Startup","Transformação Digital"],
-      "Games e Design":    ["Desenvolvimento de Jogos","e-Sports","Experiência do Usuário (UX / CX)","Gameficação","Interface do Usuário (UI)"],
-      "Gente e Gestão":    ["Carreira Profissional","Cultura Organizacional","Desenvolvimento de Times","Formação","RH","Softskills"],
-      "Governança":        ["ESG","Governança de Dados","Impacto Social","Legislação","Responsabilidade Social"],
-      "Inteligência Artificial, Tecnologias Imersivas e Metaverso": [" Realidade Virtual","Deep Learning","Engenharia de Prompt","Inteligência Artificial","LLM","Machine Learning","Metaverso","Processamento de Linguagem Natural","Realidade Aumentada / Realidade Mista","Visão Computacional"],
-      "Investimentos":     ["Captação de Recursos por meio de Editais","Investimento em Inovação","Investimentos e Criptomoedas"],
-      "Política e Cidadania": ["Cidadania Digital","Direito","Educação","Empregabilidade","Geopolítica","Infância","Mobilidade Urbana","Saúde","Turismo","Urbanismo"],
-      "Processos e Técnicas de Mercado": ["Agilidade","Atacado e Varejo","Branding","Canais de Venda","Comportamento do Consumidor","E-commerce","Experiência do Cliente","Marketing","Vendas B2B e B2C"],
-      "Setores Tech":      ["Agritech","Cleantech","Construtech","Ecotech","Edutech","Fintech","Foodtech","Govtech","Healthtech","Lawtech","Retailtech","Sportech"],
-      "Simulação e Modelagem": ["Corte a Laser","Impressão 3D","Modelagem 3D"],
-      "Sustentabilidade":  ["Desenvolvimento Sustentável","Economia Circular","Eficiência Energética","Energia Renovável","Gestão de Resíduos","Logística Reversa","Meio Ambiente","Mudanças Climáticas","ODS"],
-      "Tecnologias de Conectividade, Robótica e Computação Avançada": ["5G","6G","Computação Quântica","Internet das Coisas","Robótica","Sistemas Embarcados"]
-    };
-
-    // popula inicialmente com lista de temas
-    function populaTemas() {
-      sel.innerHTML = '<option value="">-- selecione o tema --</option>';
-      Object.keys(subtemasPorTema).forEach(t => {
-        const o = new Option(t, t);
-        sel.appendChild(o);
+  // ————— Monta árvore Tema→Subtema num <div> —————
+  function buildTree(containerId, hiddenInputId) {
+    const container = document.getElementById(containerId);
+    const hidden    = document.getElementById(hiddenInputId);
+    container.innerHTML = '';
+    Object.entries(subtemasPorTema).forEach(([tema, subs]) => {
+      const det = document.createElement('details');
+      const sum = document.createElement('summary');
+      sum.textContent = tema;
+      det.appendChild(sum);
+      subs.forEach(sub => {
+        const div = document.createElement('div');
+        div.className = 'subtema-item';
+        div.textContent = sub;
+        div.onclick = () => {
+          hidden.value = `${tema} → ${sub}`;
+          container.querySelectorAll('.subtema-item').forEach(el => el.style.fontWeight = '');
+          div.style.fontWeight = 'bold';
+        };
+        det.appendChild(div);
       });
-    }
-    populaTemas();
-
-    sel.addEventListener('change', () => {
-      const v = sel.value;
-      // etapa 1: escolhendo tema
-      if (!temaSel) {
-        if (!v) return;
-        temaSel = v;
-        chosen.textContent = v;
-        hint.classList.remove('hidden');
-
-        // “← Voltar” + subtemas
-        sel.innerHTML = '<option value="">← Voltar</option>';
-        (subtemasPorTema[v] || []).forEach(s => {
-          const o = new Option(s, s);
-          sel.appendChild(o);
-        });
-
-      // etapa 2: escolhendo subtema ou voltando
-      } else {
-        if (v === "") {
-          // resetar para escolha de tema de novo
-          temaSel = null;
-          hint.classList.add('hidden');
-          populaTemas();
-        }
-        // caso contrário é um subtema: mantemos o valor em sel.value
-      }
+      container.appendChild(det);
     });
-
-    return {
-      getTheme:    () => temaSel,
-      getSubtheme: () => sel.value
-    };
   }
 
-  // ————— Cria as duas cascatas —————
-  const principal = setupCascade({
-    themeSelectId:  'temaPrincipalSelect',
-    hintId:         'temaPrincipalHint',
-    chosenSpanId:   'temaPrincipalChosen'
-  });
-  const secundario = setupCascade({
-    themeSelectId:  'temaSecundarioSelect',
-    hintId:         'temaSecundarioHint',
-    chosenSpanId:   'temaSecundarioChosen'
-  });
+  // ————— Inicializa Tema Principal e Secundário —————
+  buildTree('temaPrincipalTree','temaPrincipalValue');
+  buildTree('temaSecundarioTree','temaSecundarioValue');
 
   // ————— Contadores de caracteres —————
   document.getElementById('long_text_mkqr5e1x')
-    .addEventListener('input', e => {
-      document.getElementById('descCounter').textContent =
-        `${e.target.value.length}/700`;
-    });
+    .addEventListener('input', e => document.getElementById('descCounter').textContent = `${e.target.value.length}/700`);
   document.getElementById('text_mkqrqmfw')
-    .addEventListener('input', e => {
-      document.getElementById('extrasCounter').textContent =
-        `${e.target.value.length}/700`;
-    });
+    .addEventListener('input', e => document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`);
 
   // ————— Toggle campos dinâmicos —————
   const formatSelect = document.getElementById('short_textossh5v4j');
@@ -420,66 +337,63 @@
   const ageLabel     = document.getElementById('ageRangeLabel');
   const showDays     = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon','Intervenção urbana','Demonstração','Experiência','Visitas/ percursos guiados','Campeonato','Exposição artística','Feira']);
   const showMax      = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
-  function toggleFields() {
+  formatSelect.addEventListener('change', () => {
     daysLabel.classList.toggle('hidden', !showDays.has(formatSelect.value));
     maxLabel .classList.toggle('hidden', !showMax.has(formatSelect.value));
-  }
-  function toggleAge() {
+  });
+  restrSelect.addEventListener('change', () => {
     ageLabel.classList.toggle('hidden', restrSelect.value !== 'Sim');
-  }
-  formatSelect.addEventListener('change', toggleFields);
-  restrSelect.addEventListener('change', toggleAge);
-  toggleFields();
-  toggleAge();
+  });
+  // executa uma vez ao carregar
+  formatSelect.dispatchEvent(new Event('change'));
+  restrSelect.dispatchEvent(new Event('change'));
 
   // ————— Submissão do formulário —————
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
 
-    // captura de todos os campos
-    const titleRaw     = document.getElementById('text_mkqrhjas').value;
-    const titleEsc     = titleRaw.replace(/"/g,'\\"');
-    const format       = formatSelect.value;
-    const days         = document.getElementById('short_textb7obn15q').value;
-    const maxGuests    = document.getElementById('text_mkqrjadb').value;
-    const duration     = document.getElementById('text_mkqrvnnp').value;
-    const desc         = document.getElementById('long_text_mkqr5e1x').value;
-    const extras       = document.getElementById('text_mkqrqmfw').value;
-    const restr        = restrSelect.value;
-    const ageRange     = document.getElementById('text_mkqrrpq3_range').value;
-    const publico      = document.getElementById('text_mkqr6nqa').value;
-    const guestIds     = selectedGuests.map(g=>g.id);
+    // 1) Captura valores
+    const titleRaw  = document.getElementById('text_mkqrhjas').value;
+    const titleEsc  = titleRaw.replace(/"/g,'\\"');
+    const days      = document.getElementById('short_textb7obn15q').value;
+    const maxG      = document.getElementById('text_mkqrjadb').value;
+    const duration  = document.getElementById('text_mkqrvnnp').value;
+    const desc      = document.getElementById('long_text_mkqr5e1x').value;
+    const extras    = document.getElementById('text_mkqrqmfw').value;
+    const restr     = restrSelect.value;
+    const ageRange  = document.getElementById('text_mkqrrpq3_range').value;
+    const pub       = document.getElementById('text_mkqr6nqa').value;
+    const guestIds  = selectedGuests.map(g=>g.id);
 
-    // coleta dos temas e subtemas das cascatas
-    const temaP    = principal.getTheme();
-    const subtemaP = principal.getSubtheme();
-    const temaS    = secundario.getTheme();
-    const subtemaS = secundario.getSubtheme();
+    // 2) Separa Tema e Subtema
+    const [temaPrincipal, subtemaPrincipal=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
+    const [temaSecundario, subtemaSecundario=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
 
-    // monta column_values
+    // 3) Monta column_values
     const vals = {
       text_mkqrhjas:      titleRaw,
-      short_textossh5v4j: format,
-      ...(days      && { short_textb7obn15q: days      }),
-      ...(maxGuests && { text_mkqrjadb:      maxGuests }),
+      short_textossh5v4j: formatSelect.value,
+      ...(days   && { short_textb7obn15q: days    }),
+      ...(maxG   && { text_mkqrjadb:      maxG    }),
       text_mkqrvnnp:      duration,
       long_text_mkqr5e1x: desc,
       text_mkqrqmfw:      extras,
-      text_mkqrrpq3:      restr==='Sim'?ageRange:restr,
-      text_mkqrwawz:      temaP,
-      text_mkqrm18v:      subtemaP,
-      text_mkqrth67:      temaS,
-      text_mkqrfjz3:      subtemaS,
-      text_mkqr6nqa:      publico,
+      text_mkqrrpq3:      restr==='Sim'? ageRange: restr,
+      // colunas separadas!
+      text_mkqrwawz:      temaPrincipal,
+      text_mkqrm18v:      subtemaPrincipal,
+      text_mkqrth67:      temaSecundario,
+      text_mkqrfjz3:      subtemaSecundario,
+      text_mkqr6nqa:      pub,
       color_mkqr22e3:     { label: 'Caixa de Entrada' },
       ...(guestIds.length && {
-        board_relation_mkqr6b1t:{
+        board_relation_mkqr6b1t: {
           linkedPulseIds: guestIds.map(id=>({ linkedPulseId:id }))
         }
       })
     };
 
-    // escape + stringify
+    // 4) Escapa JSON e envia mutation
     const colJson = JSON.stringify(vals)
       .replace(/\\/g,'\\\\')
       .replace(/"/g,'\\"')
@@ -488,27 +402,30 @@
       mutation {
         create_item(
           board_id: ${BOARD_ID},
-          item_name:  "${titleEsc}",
+          item_name: "${titleEsc}",
           column_values: "${colJson}"
         ) { id }
       }
     `;
 
-    // envio e tratamento de erros
     try {
       const data = await mondayMutation(mutation);
       alert('Atividade criada! ID: ' + data.create_item.id);
       document.getElementById('activityForm').reset();
       selectedGuests = [];
       renderSlots();
-      toggleFields();
-      toggleAge();
-    } catch(err) {
+      // re-renderiza árvore limpa
+      buildTree('temaPrincipalTree','temaPrincipalValue');
+      buildTree('temaSecundarioTree','temaSecundarioValue');
+      // retoggle
+      formatSelect.dispatchEvent(new Event('change'));
+      restrSelect.dispatchEvent(new Event('change'));
+    } catch (err) {
       if (Array.isArray(err)) {
         alert('Falha:\n' + err.map(e=>e.message).join('\n'));
-        err.forEach((e,i)=>console.error(`❌ [${i}]`,e.message,e.extensions?.error_data));
+        err.forEach((e,i)=>console.error(`❌ [${i}]`, e.message, e.extensions?.error_data));
       } else if (err.error) {
-        alert('Worker:\n' + err.error);
+        alert('Erro do Worker:\n' + err.error);
         console.error(err.error);
       } else {
         alert('Erro inesperado. Veja console.');
@@ -523,9 +440,3 @@
     renderSlots();
   })();
 </script>
-
-
-
-
-</body>
-</html>
