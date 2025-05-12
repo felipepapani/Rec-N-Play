@@ -29,7 +29,7 @@
   <h1>Nova Atividade</h1>
   <form id="activityForm">
     <label>
-      Noaa da Atividade:
+      Nome da Atividade:
       <input type="text" id="text_mkqrhjas" required>
     </label>
 
@@ -305,20 +305,28 @@
       e.preventDefault();
       // 1) cria convidados novos
       if (guestsToCreate.length) {
-        const parts = guestsToCreate.map((g,i)=>`
-          m${i}: create_item(
-            board_id: ${GUEST_BOARD_ID},
-            item_name: "${g.name.replace(/"/g,'\\"')}",
-            column_values: "{\\"text_mkqreer2\\":\\"${g.name.replace(/"/g,'\\"')}\\"
-              ${g.cargo   ? `,\\"text_mkqry55n\\":\\"${g.cargo.replace(/"/g,'\\"')}\\\"` : ''}
-              ${g.empresa ? `,\\"text_mkqrghw1\\":\\"${g.empresa.replace(/"/g,'\\"')}\\\"` : ''}
-            }"
-          ) { id }
-        `).join('\n');
-        const batch = `mutation {${parts}}`;
+        const parts = guestsToCreate.map((g,i) => {
+          const cols = [];
+          cols.push(`"text_mkqreer2":"${g.name.replace(/"/g,'\\"')}"`);
+          if (g.cargo)   cols.push(`"text_mkqry55n":"${g.cargo.replace(/"/g,'\\"')}"`);
+          if (g.empresa) cols.push(`"text_mkqrghw1":"${g.empresa.replace(/"/g,'\\"')}"`);
+          const colString = `{${cols.join(',')}}`;
+          return `
+            m${i}: create_item(
+              board_id: ${GUEST_BOARD_ID},
+              item_name: "${g.name.replace(/"/g,'\\"')}",
+              column_values: "${colString.replace(/"/g,'\\"')}"
+            ) { id }
+          `;
+        }).join('\n');
+
+        const batch = `mutation {
+          ${parts}
+        }`;
+
+        console.log(batch);     // <–– sempre bom inspecionar o texto gerado
         const res = await mondayMutation(batch);
-        guestsToCreate.forEach((g,i)=> g.id = res[`m${i}`].id);
-        guestsToCreate = [];
+        // preencha os IDs retornados em guestsToCreate…
       }
       // 2) coleta form
       const title  = document.getElementById('text_mkqrhjas').value,
