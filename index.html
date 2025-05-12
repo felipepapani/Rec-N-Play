@@ -80,10 +80,10 @@
       <div class="char-counter" id="descCounter">0/700</div>
     </label>
 
-    <label>
-      Tema Principal:
-      <select id="text_mkqrwawz">
-        <option value="">-- selecione --</option>
+    <label id="temaPrincipalContainer">
+      Tema Principal → Subtema:
+      <select id="temaPrincipalSelect">
+        <option value="">-- selecione o tema --</option>
         <option>Artes e Cultura</option>
         <option>Comunicação</option>
         <option>Dados e Segurança Digital</option>
@@ -102,12 +102,16 @@
         <option>Sustentabilidade</option>
         <option>Tecnologias de Conectividade, Robótica e Computação Avançada</option>
       </select>
+      <small id="temaPrincipalHint" class="hidden">
+        Escolha um subtema para “<span id="temaPrincipalChosen"></span>”
+      </small>
     </label>
 
-    <label>
-      Tema Secundário:
-      <select id="text_mkqrth67">
-        <option value="">-- selecione --</option>
+    <!-- Tema Secundário → Subtema Secundário -->
+    <label id="temaSecundarioContainer">
+      Tema Secundário → Subtema:
+      <select id="temaSecundarioSelect">
+        <option value="">-- selecione o tema --</option>
         <option>Artes e Cultura</option>
         <option>Comunicação</option>
         <option>Dados e Segurança Digital</option>
@@ -126,55 +130,12 @@
         <option>Sustentabilidade</option>
         <option>Tecnologias de Conectividade, Robótica e Computação Avançada</option>
       </select>
+      <small id="temaSecundarioHint" class="hidden">
+        Escolha um subtema para “<span id="temaSecundarioChosen"></span>”
+      </small>
     </label>
 
-    <label>
-      Subtema Principal:
-      <select id="text_mkqrm18v">
-        <option value="">-- selecione --</option>
-        <option>Artes e Cultura</option>
-        <option>Comunicação</option>
-        <option>Dados e Segurança Digital</option>
-        <option>Desenvolvimento de Software e Cloud</option>
-        <option>Diversidade e Inclusão</option>
-        <option>Empreendedorismo e Inovação</option>
-        <option>Games e Design</option>
-        <option>Gente e Gestão</option>
-        <option>Governança</option>
-        <option>Inteligência Artificial, Tecnologias Imersivas e Metaverso</option>
-        <option>Investimentos</option>
-        <option>Política e Cidadania</option>
-        <option>Processos e Técnicas de Mercado</option>
-        <option>Setores Tech</option>
-        <option>Simulação e Modelagem</option>
-        <option>Sustentabilidade</option>
-        <option>Tecnologias de Conectividade, Robótica e Computação Avançada</option>
-      </select>
-    </label>
-
-    <label>
-      Subtema Secundário:
-      <select id="text_mkqrfjz3">
-        <option value="">-- selecione --</option>
-        <option>Artes e Cultura</option>
-        <option>Comunicação</option>
-        <option>Dados e Segurança Digital</option>
-        <option>Desenvolvimento de Software e Cloud</option>
-        <option>Diversidade e Inclusão</option>
-        <option>Empreendedorismo e Inovação</option>
-        <option>Games e Design</option>
-        <option>Gente e Gestão</option>
-        <option>Governança</option>
-        <option>Inteligência Artificial, Tecnologias Imersivas e Metaverso</option>
-        <option>Investimentos</option>
-        <option>Política e Cidadania</option>
-        <option>Processos e Técnicas de Mercado</option>
-        <option>Setores Tech</option>
-        <option>Simulação e Modelagem</option>
-        <option>Sustentabilidade</option>
-        <option>Tecnologias de Conectividade, Robótica e Computação Avançada</option>
-      </select>
-    </label>
+    
 
     <label>
       público:
@@ -247,19 +208,20 @@
 
 <script>
   // ————— Configurações —————
-  const API_URL = 'https://plain-butterfly-7001.programacao-e50.workers.dev';
-  const BOARD_ID = 9099133664;
+  const API_URL        = 'https://plain-butterfly-7001.programacao-e50.workers.dev';
+  const BOARD_ID       = 9099133664;
   const GUEST_BOARD_ID = 9102764459;
 
-  let loadedGuests = [];
+  // ————— Estado global —————
+  let loadedGuests   = [];
   let selectedGuests = [];
 
-  // ————— Função GraphQL genérica —————
+  // ————— Função genérica GraphQL —————
   async function mondayMutation(query) {
     const res = await fetch(API_URL, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query })
+      body:    JSON.stringify({ query })
     });
     const j = await res.json();
     if (!res.ok) throw j.errors || j;
@@ -267,14 +229,16 @@
     return j.data;
   }
 
-  // ————— Carrega convidados —————
+  // ————— Carrega convidados (nome, cargo, empresa) —————
   async function loadGuests() {
     const q = `query {
       boards(ids:[${GUEST_BOARD_ID}]) {
         items_page(limit:100) {
           items {
             id
-            column_values(ids:["text_mkqreer2","text_mkqry55n","text_mkqrghw1"]) { id text }
+            column_values(ids:["text_mkqreer2","text_mkqry55n","text_mkqrghw1"]) {
+              id text
+            }
           }
         }
       }
@@ -285,9 +249,9 @@
         const cols = item.column_values;
         return {
           id:      +item.id,
-          name:    cols.find(c=>c.id==="text_mkqreer2")?.text||"",
-          cargo:   cols.find(c=>c.id==="text_mkqry55n")?.text||"",
-          empresa: cols.find(c=>c.id==="text_mkqrghw1")?.text||""
+          name:    cols.find(c=>c.id==="text_mkqreer2")?.text   || "",
+          cargo:   cols.find(c=>c.id==="text_mkqry55n")?.text || "",
+          empresa: cols.find(c=>c.id==="text_mkqrghw1")?.text || ""
         };
       });
     } catch (err) {
@@ -296,16 +260,17 @@
     }
   }
 
-  // ————— Renderiza slots —————
+  // ————— Renderiza os slots de convidados + botão “+” —————
   function renderSlots() {
     const c = document.getElementById('guestSlots');
     c.innerHTML = '';
-    selectedGuests.forEach((g,i) => {
+    selectedGuests.forEach((g, i) => {
       const d = document.createElement('div');
       d.className = 'guest-slot';
       d.textContent = g.name;
       const btn = document.createElement('button');
-      btn.type = 'button'; btn.className = 'remove';
+      btn.type = 'button';
+      btn.className = 'remove';
       btn.innerHTML = '&times;';
       btn.onclick = () => { selectedGuests.splice(i,1); renderSlots(); };
       d.appendChild(btn);
@@ -319,7 +284,7 @@
     }
   }
 
-  // ————— Modal de busca —————
+  // ————— Modal de busca de convidados —————
   function openGuestModal() {
     document.getElementById('guestModal').classList.remove('hidden');
     document.getElementById('guestSearchInput').value = '';
@@ -351,125 +316,187 @@
     });
   document.getElementById('closeGuestModal').onclick = closeGuestModal;
 
+  // ————— Helper para cascata Tema→Subtema —————
+  function setupCascade({ themeSelectId, hintId, chosenSpanId }) {
+    const sel    = document.getElementById(themeSelectId);
+    const hint   = document.getElementById(hintId);
+    const chosen = document.getElementById(chosenSpanId);
+    let temaSel  = null;
+    const subtemasPorTema = {
+      "Artes e Cultura": ["Exposição artística","Show","Contação de História"],
+      "Comunicação":      ["Palestra","Talk Show"],
+      "Dados e Segurança Digital": ["Mesa redonda","Workshop"],
+      "Desenvolvimento de Software e Cloud": ["Hackathon","Minicurso"],
+      "Diversidade e Inclusão": ["Roda de conversa","Mentoria"],
+      "Empreendedorismo e Inovação": ["Pitchs","Rodada de negócios"],
+      "Games e Design":    ["Oficina","Exposição artística"],
+      "Gente e Gestão":    ["Mesa redonda","Mentoria"],
+      "Governança":        ["Palestra","Talk Show"],
+      "Inteligência Artificial, Tecnologias Imersivas e Metaverso": ["Workshop","Experiência"],
+      "Investimentos":     ["Palestra","Mesa redonda"],
+      "Política e Cidadania": ["Roda de conversa","Debate"],
+      "Processos e Técnicas de Mercado": ["Workshop","Feira"],
+      "Setores Tech":      ["Exposição artística","Hackathon"],
+      "Simulação e Modelagem": ["Oficina","Workshop"],
+      "Sustentabilidade":  ["Palestra","Experiência"],
+      "Tecnologias de Conectividade, Robótica e Computação Avançada": ["Demonstração","Oficina"]
+    };
+    sel.addEventListener('change', () => {
+      const v = sel.value;
+      if (!temaSel) {
+        if (!v) return;
+        temaSel = v;
+        chosen.textContent = v;
+        hint.classList.remove('hidden');
+        const subs = subtemasPorTema[v] || [];
+        sel.innerHTML = '<option value="">-- selecione o subtema --</option>';
+        subs.forEach(s => {
+          const o = document.createElement('option');
+          o.value = s;
+          o.textContent = s;
+          sel.appendChild(o);
+        });
+      }
+    });
+    return {
+      getTheme:    () => temaSel,
+      getSubtheme: () => sel.value
+    };
+  }
+
+  // ————— Configurações das duas cascatas —————
+  const principal = setupCascade({
+    themeSelectId:  'temaPrincipalSelect',
+    hintId:         'temaPrincipalHint',
+    chosenSpanId:   'temaPrincipalChosen'
+  });
+  const secundario = setupCascade({
+    themeSelectId:  'temaSecundarioSelect',
+    hintId:         'temaSecundarioHint',
+    chosenSpanId:   'temaSecundarioChosen'
+  });
+
   // ————— Contadores de caracteres —————
   document.getElementById('long_text_mkqr5e1x')
     .addEventListener('input', e => {
-      document.getElementById('descCounter').textContent =
-        `${e.target.value.length}/700`;
+      document.getElementById('descCounter').textContent = `${e.target.value.length}/700`;
     });
   document.getElementById('text_mkqrqmfw')
     .addEventListener('input', e => {
-      document.getElementById('extrasCounter').textContent =
-        `${e.target.value.length}/700`;
+      document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`;
     });
 
   // ————— Toggle campos dinâmicos —————
-  const fmt = document.getElementById('short_textossh5v4j');
-  const daysL = document.getElementById('daysLabel');
-  const maxL  = document.getElementById('maxGuestsLabel');
-  const rs    = document.getElementById('text_mkqrrpq3');
-  const ageL  = document.getElementById('ageRangeLabel');
-  const showD = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon','Intervenção urbana','Demonstração','Experiência','Visitas/ percursos guiados','Campeonato','Exposição artística','Feira']);
-  const showM = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
-  function toggleF() {
-    daysL.classList.toggle('hidden', !showD.has(fmt.value));
-    maxL.classList.toggle('hidden', !showM.has(fmt.value));
+  const formatSelect = document.getElementById('short_textossh5v4j');
+  const daysLabel    = document.getElementById('daysLabel');
+  const maxLabel     = document.getElementById('maxGuestsLabel');
+  const restrSelect  = document.getElementById('text_mkqrrpq3');
+  const ageLabel     = document.getElementById('ageRangeLabel');
+  const showDays     = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon','Intervenção urbana','Demonstração','Experiência','Visitas/ percursos guiados','Campeonato','Exposição artística','Feira']);
+  const showMax      = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
+  function toggleFields() {
+    daysLabel.classList.toggle('hidden', !showDays.has(formatSelect.value));
+    maxLabel .classList.toggle('hidden', !showMax.has(formatSelect.value));
   }
-  function toggleA() {
-    ageL.classList.toggle('hidden', rs.value !== 'Sim');
+  function toggleAge() {
+    ageLabel.classList.toggle('hidden', restrSelect.value !== 'Sim');
   }
-  fmt.addEventListener('change', toggleF);
-  rs.addEventListener('change', toggleA);
-  toggleF(); toggleA();
+  formatSelect.addEventListener('change', toggleFields);
+  restrSelect.addEventListener('change', toggleAge);
+  toggleFields();
+  toggleAge();
 
-  // ————— Submissão do form —————
-  document.getElementById('activityForm')
-    .addEventListener('submit', async e => {
-      e.preventDefault();
-      // coleta
-      const tRaw = document.getElementById('text_mkqrhjas').value;
-      const tEsc = tRaw.replace(/"/g,'\\"');
-      const fmtV = fmt.value;
-      const daysV= document.getElementById('short_textb7obn15q').value;
-      const maxV = document.getElementById('text_mkqrjadb').value;
-      const dur  = document.getElementById('text_mkqrvnnp').value;
-      const des  = document.getElementById('long_text_mkqr5e1x').value;
-      const ext  = document.getElementById('text_mkqrqmfw').value;
-      const rsV  = rs.value;
-      const agV  = document.getElementById('text_mkqrrpq3_range').value;
-      const t1   = document.getElementById('text_mkqrwawz').value;
-      const t2   = document.getElementById('text_mkqrth67').value;
-      const s1   = document.getElementById('text_mkqrm18v').value;
-      const s2   = document.getElementById('text_mkqrfjz3').value;
-      const pub  = document.getElementById('text_mkqr6nqa').value;
-      const guestIds = selectedGuests.map(g=>g.id);
+  // ————— Submissão do formulário —————
+  document.getElementById('activityForm').addEventListener('submit', async e => {
+    e.preventDefault();
 
-      // monta vals
-      const vals = {
-        text_mkqrhjas:      tRaw,
-        short_textossh5v4j: fmtV,
-        ...(daysV && { short_textb7obn15q: daysV }),
-        ...(maxV  && { text_mkqrjadb:      maxV }),
-        text_mkqrvnnp:      dur,
-        long_text_mkqr5e1x: des,
-        text_mkqrqmfw:      ext,
-        text_mkqrrpq3:      rsV==='Sim'?agV:rsV,
-        text_mkqrwawz:      t1,
-        text_mkqrth67:      t2,
-        text_mkqrm18v:      s1,
-        text_mkqrfjz3:      s2,
-        text_mkqr6nqa:      pub,
-        color_mkqr22e3: { label: 'Caixa de Entrada' },
-        ...(guestIds.length && {
-          board_relation_mkqr6b1t:{
-            linkedPulseIds: guestIds.map(id=>({ linkedPulseId:id }))
-          }})
-      };
+    // 1) Captura valores
+    const titleRaw    = document.getElementById('text_mkqrhjas').value;
+    const titleEsc    = titleRaw.replace(/"/g,'\\"');
+    const format      = formatSelect.value;
+    const days        = document.getElementById('short_textb7obn15q').value;
+    const maxGuests   = document.getElementById('text_mkqrjadb').value;
+    const duration    = document.getElementById('text_mkqrvnnp').value;
+    const desc        = document.getElementById('long_text_mkqr5e1x').value;
+    const extras      = document.getElementById('text_mkqrqmfw').value;
+    const restr       = restrSelect.value;
+    const ageRange    = document.getElementById('text_mkqrrpq3_range').value;
+    const pub         = document.getElementById('text_mkqr6nqa').value;
+    const guestIds    = selectedGuests.map(g=>g.id);
 
-      // stringify + escape
-      const colJson = JSON.stringify(vals)
-        .replace(/\\/g,'\\\\')
-        .replace(/"/g,'\\"')
-        .replace(/\n/g,'\\n');
-      const mutation = `
-        mutation {
-          create_item(
-            board_id: ${BOARD_ID},
-            item_name: "${tEsc}",
-            column_values: "${colJson}"
-          ) { id }
+    // cascatas
+    const temaPrincipal    = principal.getTheme();
+    const subtemaPrincipal = principal.getSubtheme();
+    const temaSecundario   = secundario.getTheme();
+    const subtemaSecundario= secundario.getSubtheme();
+
+    // 2) Monta column_values
+    const vals = {
+      text_mkqrhjas:      titleRaw,
+      short_textossh5v4j: format,
+      ...(days      && { short_textb7obn15q: days      }),
+      ...(maxGuests && { text_mkqrjadb:      maxGuests }),
+      text_mkqrvnnp:      duration,
+      long_text_mkqr5e1x: desc,
+      text_mkqrqmfw:      extras,
+      text_mkqrrpq3:      restr==='Sim'?ageRange:restr,
+      text_mkqrwawz:      temaPrincipal,
+      text_mkqrm18v:      subtemaPrincipal,
+      text_mkqrth67:      temaSecundario,
+      text_mkqrfjz3:      subtemaSecundario,
+      text_mkqr6nqa:      pub,
+      color_mkqr22e3:     { label: 'Caixa de Entrada' },
+      ...(guestIds.length && {
+        board_relation_mkqr6b1t:{
+          linkedPulseIds: guestIds.map(id=>({ linkedPulseId:id }))
         }
-      `;
-      // envia
-      try {
-        const data = await mondayMutation(mutation);
-        alert('Atividade criada! ID: '+data.create_item.id);
-        document.getElementById('activityForm').reset();
-        selectedGuests=[];
-        renderSlots();
-        toggleF(); toggleA();
-      } catch(err) {
-        if(Array.isArray(err)) {
-          err.forEach((e,i)=>{
-            console.error(`❌ GraphQL [${i}]:`,e.message,e.extensions?.error_data);
-          });
-          alert('Falha:\n'+err.map(e=>e.message).join('\n'));
-        } else if(err.error){
-          console.error('Worker:',err.error);
-          alert('Worker:\n'+err.error);
-        } else {
-          console.error('Unexpected:',err);
-          alert('Erro inesperado. Veja console.');
-        }
+      })
+    };
+
+    // 3) Stringify + escape
+    const colJson = JSON.stringify(vals)
+      .replace(/\\/g,'\\\\')
+      .replace(/"/g,'\\"')
+      .replace(/\n/g,'\\n');
+    const mutation = `
+      mutation {
+        create_item(
+          board_id: ${BOARD_ID},
+          item_name:  "${titleEsc}",
+          column_values: "${colJson}"
+        ) { id }
       }
-    });
+    `;
+    // 4) Envio e tratamento de erro
+    try {
+      const data = await mondayMutation(mutation);
+      alert('Atividade criada! ID: ' + data.create_item.id);
+      document.getElementById('activityForm').reset();
+      selectedGuests = [];
+      renderSlots();
+      toggleFields();
+      toggleAge();
+    } catch(err) {
+      if (Array.isArray(err)) {
+        alert('Falha:\n' + err.map(e=>e.message).join('\n'));
+        err.forEach((e,i)=>console.error(`❌ [${i}]`,e.message,e.extensions?.error_data));
+      } else if (err.error) {
+        alert('Worker:\n' + err.error);
+        console.error(err.error);
+      } else {
+        alert('Erro inesperado. Veja console.');
+        console.error(err);
+      }
+    }
+  });
 
-  // ————— Inicializa —————
+  // ————— Inicialização —————
   (async()=>{
     await loadGuests();
     renderSlots();
   })();
 </script>
+
 
 
 </body>
