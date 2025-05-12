@@ -169,237 +169,238 @@
   </div>
 
   <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const API_URL        = 'https://plain-butterfly-7001.programacao-e50.workers.dev';
-    const BOARD_ID       = 9099133664;
-    const GUEST_BOARD_ID = 9102764459;
+document.addEventListener('DOMContentLoaded', () => {
+  const API_URL        = 'https://plain-butterfly-7001.programacao-e50.workers.dev';
+  const BOARD_ID       = 9099133664;
+  const GUEST_BOARD_ID = 9102764459;
 
-    let selectedGuests = [];
-    let guestsToCreate = [];
+  let selectedGuests = [];
+  let guestsToCreate = [];
 
-    async function mondayMutation(query) {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
-      });
-      const j = await res.json();
-      if (!res.ok) throw j.errors || j;
-      if (j.errors) throw j.errors;
-      return j.data;
-    }
-
-    function renderSlots() {
-      const c = document.getElementById('guestSlots');
-      c.innerHTML = '';
-      selectedGuests.forEach((g,i) => {
-        const d = document.createElement('div');
-        d.className = 'guest-slot';
-        d.textContent = g.name;
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'remove';
-        btn.innerHTML = '&times;';
-        btn.onclick = () => { selectedGuests.splice(i,1); renderSlots(); };
-        d.appendChild(btn);
-        c.appendChild(d);
-      });
-      if (selectedGuests.length < 6) {
-        const b = document.createElement('button');
-        b.type = 'button'; b.id = 'addGuestBtn'; b.textContent = '+';
-        b.onclick = () => {
-          document.getElementById('newGuestModal').classList.remove('hidden');
-          ['guestNameInput','guestCargoInput','guestEmpresaInput'].forEach(id=>{
-            document.getElementById(id).value = '';
-          });
-        };
-        c.appendChild(b);
-      }
-    }
-
-    document.getElementById('closeGuestModalBtn').onclick = () => {
-      document.getElementById('newGuestModal').classList.add('hidden');
-    };
-    document.getElementById('saveGuestBtn').onclick = () => {
-      const name    = document.getElementById('guestNameInput').value.trim();
-      const cargo   = document.getElementById('guestCargoInput').value.trim();
-      const empresa = document.getElementById('guestEmpresaInput').value.trim();
-      if (!name) return alert('Informe ao menos o nome');
-      const guest = { id: null, name, cargo, empresa };
-      selectedGuests.push(guest);
-      guestsToCreate.push(guest);
-      document.getElementById('newGuestModal').classList.add('hidden');
-      renderSlots();
-    };
-
-    // montar cascata Tema→Subtema
-    const subtemasPorTema = {
-      "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
-      "Comunicação":      ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/Industrial","Podcast"],
-      "Dados e Segurança Digital": ["Análise de Dados","Blockchain","Cibersegurança","Governança de Dados","Investimentos/Criptomoedas","LGPD","NFT","Privacidade","Web3"],
-      "Desenvolvimento de Software e Cloud": ["Desenvolvimento de Software e Cloud","Low Code/No Code","Programação de Software"],
-      "Diversidade e Inclusão": ["50+","Acessibilidade/PCD","Equidade Racial","LGBTQIAPN+","Mulheres","Neurodivergência","Periferias"],
-      "Empreendedorismo e Inovação": ["Ecossistemas de Inovação","Empresa Júnior","Gestão de Comunidades","Inovação Aberta","Internacionalização","Startup","Transformação Digital"],
-      "Games e Design":    ["Desenvolvimento de Jogos","e-Sports","Experiência do Usuário (UX/CX)","Gameficação","Interface do Usuário (UI)"],
-      "Gente e Gestão":    ["Carreira Profissional","Cultura Organizacional","Desenvolvimento de Times","Formação","RH","Softskills"],
-      "Governança":        ["ESG","Governança de Dados","Impacto Social","Legislação","Responsabilidade Social"],
-      "Inteligência Artificial, Tecnologias Imersivas e Metaverso": ["Realidade Virtual","Deep Learning","Engenharia de Prompt","Inteligência Artificial","LLM","Machine Learning","Metaverso","Processamento de Linguagem Natural","Realidade Aumentada/Realidade Mista","Visão Computacional"],
-      "Investimentos":     ["Captação de Recursos","Investimento em Inovação","Criptomoedas"],
-      "Política e Cidadania": ["Cidadania Digital","Direito","Educação","Empregabilidade","Geopolítica","Infância","Mobilidade Urbana","Saúde","Turismo","Urbanismo"],
-      "Processos e Técnicas de Mercado": ["Agilidade","Atacado e Varejo","Branding","Canais de Venda","Comportamento do Consumidor","E-commerce","Experiência do Cliente","Marketing","Vendas B2B/B2C"],
-      "Setores Tech":      ["Agritech","Cleantech","Construtech","Ecotech","Edutech","Fintech","Foodtech","Govtech","Healthtech","Lawtech","Retailtech","Sportech"],
-      "Simulação e Modelagem": ["Corte a Laser","Impressão 3D","Modelagem 3D"],
-      "Sustentabilidade":  ["Desenvolvimento Sustentável","Economia Circular","Eficiência Energética","Energia Renovável","Gestão de Resíduos","Logística Reversa","Meio Ambiente","Mudanças Climáticas","ODS"],
-      "Tecnologias de Conectividade, Robótica e Computação Avançada": ["5G","6G","Computação Quântica","IoT","Robótica","Sistemas Embarcados"]
-    };
-    function buildTree(containerId, hiddenInputId) {
-      const cont = document.getElementById(containerId),
-            hid  = document.getElementById(hiddenInputId);
-      cont.innerHTML = '';
-      for (let tema in subtemasPorTema) {
-        const det = document.createElement('details'),
-              sum = document.createElement('summary');
-        sum.textContent = tema;
-        det.appendChild(sum);
-        subtemasPorTema[tema].forEach(sub => {
-          const div = document.createElement('div');
-          div.className = 'subtema-item';
-          div.textContent = sub;
-          div.onclick = () => {
-            hid.value = `${tema} → ${sub}`;
-            cont.querySelectorAll('.subtema-item').forEach(el=>el.style.fontWeight='');
-            div.style.fontWeight='bold';
-          };
-          det.appendChild(div);
-        });
-        cont.appendChild(det);
-      }
-    }
-    buildTree('temaPrincipalTree','temaPrincipalValue');
-    buildTree('temaSecundarioTree','temaSecundarioValue');
-
-    // char counters
-    document.getElementById('long_text_mkqr5e1x')
-      .addEventListener('input', e => document.getElementById('descCounter').textContent = `${e.target.value.length}/700`);
-    document.getElementById('text_mkqrqmfw')
-      .addEventListener('input', e => document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`);
-
-    // toggles
-    const fmt = document.getElementById('short_textossh5v4j'),
-          daysL = document.getElementById('daysLabel'),
-          maxL  = document.getElementById('maxGuestsLabel'),
-          rs    = document.getElementById('text_mkqrrpq3'),
-          ageL  = document.getElementById('ageRangeLabel'),
-          showD = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon','Intervenção urbana','Demonstração','Experiência','Visitas/ percursos guiados','Campeonato','Exposição artística','Feira']),
-          showM = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
-    fmt.addEventListener('change', ()=> {
-      daysL.classList.toggle('hidden', !showD.has(fmt.value));
-      maxL .classList.toggle('hidden', !showM.has(fmt.value));
+  async function mondayMutation(query) {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
     });
-    rs.addEventListener('change', ()=> ageL.classList.toggle('hidden', rs.value!=='Sim'));
-    fmt.dispatchEvent(new Event('change'));
-    rs.dispatchEvent(new Event('change'));
+    const j = await res.json();
+    if (!res.ok) throw j.errors || j;
+    if (j.errors) throw j.errors;
+    return j.data;
+  }
 
-    // submit
-    document.getElementById('activityForm').addEventListener('submit', async e=>{
-      e.preventDefault();
-      // 1) cria convidados novos
-      if (guestsToCreate.length) {
-        const parts = guestsToCreate.map((g, i) => {
-          const cols = [
-            `"text_mkqreer2":"${g.name.replace(/"/g,'\\"')}"`
-          ];
-          if (g.cargo)   cols.push(`"text_mkqry55n":"${g.cargo.replace(/"/g,'\\"')}"`);
-          if (g.empresa) cols.push(`"text_mkqrghw1":"${g.empresa.replace(/"/g,'\\"')}"`);
-          // monta um JSON-stringify válido para colunas text
-          const colString = `{${cols.join(',')}}`.replace(/"/g,'\\"');
-
-          return `
-            m${i}: create_item(
-              board_id: ${GUEST_BOARD_ID},
-              item_name: "${g.name.replace(/"/g,'\\"')}",
-              column_values: "${colString}"
-            ) { id }
-          `;
-        }).join('\n');
-
-        const batch = `mutation {
-          ${parts}
-        }`;
-
-        // -- aqui sim você envia o batch --
-        const res = await mondayMutation(batch);
-        // e atribui os IDs retornados...
-        guestsToCreate.forEach((g, i) => g.id = res[`m${i}`].id);
-        guestsToCreate = [];
-      }
-      // 2) coleta form
-      const title  = document.getElementById('text_mkqrhjas').value,
-            titleEsc = title.replace(/"/g,'\\"'),
-            days     = document.getElementById('short_textb7obn15q').value,
-            maxG     = document.getElementById('text_mkqrjadb').value,
-            duration = document.getElementById('text_mkqrvnnp').value,
-            desc     = document.getElementById('long_text_mkqr5e1x').value,
-            extras   = document.getElementById('text_mkqrqmfw').value,
-            restr    = document.getElementById('text_mkqrrpq3').value,
-            ageRange = document.getElementById('text_mkqrrpq3_range').value,
-            pub      = document.getElementById('text_mkqr6nqa').value,
-            guestIds = selectedGuests.map(g=>g.id);
-      const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → '),
-            [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
-      // 3) monta cols
-      const vals = {
-        text_mkqrhjas:      title,
-        short_textossh5v4j: fmt.value,
-        ...(days && { short_textb7obn15q: days }),
-        ...(maxG && { text_mkqrjadb: maxG }),
-        text_mkqrvnnp:      duration,
-        long_text_mkqr5e1x: desc,
-        text_mkqrqmfw:      extras,
-        text_mkqrrpq3:      restr==='Sim'? ageRange: restr,
-        text_mkqrwawz:      temaP,
-        text_mkqrm18v:      subP,
-        text_mkqrth67:      temaS,
-        text_mkqrfjz3:      subS,
-        text_mkqr6nqa:      pub,
-        color_mkqr22e3:     { label:'Caixa de Entrada' },
-        ...(guestIds.length && {
-          board_relation_mkqr6b1t:{
-            linkedPulseIds: guestIds.map(id=>({linkedPulseId:id}))
-          }
-        })
-      };
-      const colJson = JSON.stringify(vals)
-        .replace(/\\/g,'\\\\')
-        .replace(/"/g,'\\"')
-        .replace(/\n/g,'\\n');
-      const mutation = `
-        mutation {
-          create_item(
-            board_id: ${BOARD_ID},
-            item_name: "${titleEsc}",
-            column_values: "${colJson}"
-          ) { id }
-        }
-      `;
-      try {
-        const resp = await mondayMutation(mutation);
-        alert('Atividade criada! ID: '+resp.create_item.id);
-        e.target.reset();
-        selectedGuests = [];
+  function renderSlots() {
+    const container = document.getElementById('guestSlots');
+    container.innerHTML = '';
+    selectedGuests.forEach((g, i) => {
+      const slot = document.createElement('div');
+      slot.className = 'guest-slot';
+      slot.textContent = g.name;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'remove';
+      btn.innerHTML = '&times;';
+      btn.onclick = () => {
+        selectedGuests.splice(i, 1);
         renderSlots();
-        buildTree('temaPrincipalTree','temaPrincipalValue');
-        buildTree('temaSecundarioTree','temaSecundarioValue');
-        fmt.dispatchEvent(new Event('change'));
-        document.getElementById('text_mkqrrpq3').dispatchEvent(new Event('change'));
-      } catch(err) {
-        console.error(err);
-        alert('Erro ao criar atividade. Veja console.');
-      }
+      };
+      slot.appendChild(btn);
+      container.appendChild(slot);
     });
+    if (selectedGuests.length < 6) {
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.id = 'addGuestBtn';
+      add.textContent = '+';
+      add.onclick = () => {
+        document.getElementById('newGuestModal').classList.remove('hidden');
+        ['guestNameInput','guestCargoInput','guestEmpresaInput']
+          .forEach(id => document.getElementById(id).value = '');
+      };
+      container.appendChild(add);
+    }
+  }
 
+  // modal handlers
+  document.getElementById('closeGuestModalBtn').onclick = () => {
+    document.getElementById('newGuestModal').classList.add('hidden');
+  };
+  document.getElementById('saveGuestBtn').onclick = () => {
+    const name    = document.getElementById('guestNameInput').value.trim();
+    const cargo   = document.getElementById('guestCargoInput').value.trim();
+    const empresa = document.getElementById('guestEmpresaInput').value.trim();
+    if (!name) return alert('Informe ao menos o nome do convidado.');
+    const guest = { id: null, name, cargo, empresa };
+    selectedGuests.push(guest);
+    guestsToCreate.push(guest);
+    document.getElementById('newGuestModal').classList.add('hidden');
     renderSlots();
+  };
+
+  // Tema → Subtema
+  const subtemasPorTema = {
+    "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
+    "Comunicação":      ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/Industrial","Podcast"],
+    "Dados e Segurança Digital": ["Análise de Dados","Blockchain","Cibersegurança","Governança de Dados","Investimentos/Criptomoedas","LGPD","NFT","Privacidade","Web3"],
+    "Desenvolvimento de Software e Cloud": ["Desenvolvimento de Software e Cloud","Low Code/No Code","Programação de Software"],
+    "Diversidade e Inclusão": ["50+","Acessibilidade/PCD","Equidade Racial","LGBTQIAPN+","Mulheres","Neurodivergência","Periferias"],
+    "Empreendedorismo e Inovação": ["Ecossistemas de Inovação","Empresa Júnior","Gestão de Comunidades","Inovação Aberta","Internacionalização","Startup","Transformação Digital"],
+    "Games e Design":    ["Desenvolvimento de Jogos","e-Sports","Experiência do Usuário (UX/CX)","Gameficação","Interface do Usuário (UI)"],
+    "Gente e Gestão":    ["Carreira Profissional","Cultura Organizacional","Desenvolvimento de Times","Formação","RH","Softskills"],
+    "Governança":        ["ESG","Governança de Dados","Impacto Social","Legislação","Responsabilidade Social"],
+    "Inteligência Artificial, Tecnologias Imersivas e Metaverso": ["Realidade Virtual","Deep Learning","Engenharia de Prompt","Inteligência Artificial","LLM","Machine Learning","Metaverso","Processamento de Linguagem Natural","Realidade Aumentada/Realidade Mista","Visão Computacional"],
+    "Investimentos":     ["Captação de Recursos","Investimento em Inovação","Criptomoedas"],
+    "Política e Cidadania": ["Cidadania Digital","Direito","Educação","Empregabilidade","Geopolítica","Infância","Mobilidade Urbana","Saúde","Turismo","Urbanismo"],
+    "Processos e Técnicas de Mercado": ["Agilidade","Atacado e Varejo","Branding","Canais de Venda","Comportamento do Consumidor","E-commerce","Experiência do Cliente","Marketing","Vendas B2B/B2C"],
+    "Setores Tech":      ["Agritech","Cleantech","Construtech","Ecotech","Edutech","Fintech","Foodtech","Govtech","Healthtech","Lawtech","Retailtech","Sportech"],
+    "Simulação e Modelagem": ["Corte a Laser","Impressão 3D","Modelagem 3D"],
+    "Sustentabilidade":  ["Desenvolvimento Sustentável","Economia Circular","Eficiência Energética","Energia Renovável","Gestão de Resíduos","Logística Reversa","Meio Ambiente","Mudanças Climáticas","ODS"],
+    "Tecnologias de Conectividade, Robótica e Computação Avançada": ["5G","6G","Computação Quântica","IoT","Robótica","Sistemas Embarcados"]
+  };
+  function buildTree(containerId, hiddenInputId) {
+    const cont = document.getElementById(containerId),
+          hid  = document.getElementById(hiddenInputId);
+    cont.innerHTML = '';
+    Object.entries(subtemasPorTema).forEach(([tema, subs]) => {
+      const det = document.createElement('details'),
+            sum = document.createElement('summary');
+      sum.textContent = tema;
+      det.appendChild(sum);
+      subs.forEach(sub => {
+        const div = document.createElement('div');
+        div.className = 'subtema-item';
+        div.textContent = sub;
+        div.onclick = () => {
+          hid.value = `${tema} → ${sub}`;
+          cont.querySelectorAll('.subtema-item').forEach(el => el.style.fontWeight='');
+          div.style.fontWeight = 'bold';
+        };
+        det.appendChild(div);
+      });
+      cont.appendChild(det);
+    });
+  }
+  buildTree('temaPrincipalTree','temaPrincipalValue');
+  buildTree('temaSecundarioTree','temaSecundarioValue');
+
+  // contadores de caracteres
+  document.getElementById('long_text_mkqr5e1x')
+    .addEventListener('input', e => document.getElementById('descCounter').textContent = `${e.target.value.length}/700`);
+  document.getElementById('text_mkqrqmfw')
+    .addEventListener('input', e => document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`);
+
+  // campos dinâmicos
+  const fmt = document.getElementById('short_textossh5v4j'),
+        daysL = document.getElementById('daysLabel'),
+        maxL  = document.getElementById('maxGuestsLabel'),
+        rs    = document.getElementById('text_mkqrrpq3'),
+        ageL  = document.getElementById('ageRangeLabel'),
+        showD = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon','Intervenção urbana','Demonstração','Experiência','Visitas/ percursos guiados','Campeonato','Exposição artística','Feira']),
+        showM = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
+  fmt.addEventListener('change', () => {
+    daysL.classList.toggle('hidden', !showD.has(fmt.value));
+    maxL .classList.toggle('hidden', !showM.has(fmt.value));
   });
-  </script>
+  rs.addEventListener('change', () => {
+    ageL.classList.toggle('hidden', rs.value !== 'Sim');
+  });
+  fmt.dispatchEvent(new Event('change'));
+  rs.dispatchEvent(new Event('change'));
+
+  // envio do formulário
+  document.getElementById('activityForm').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    // 1) criar convidados no monday
+    if (guestsToCreate.length) {
+      const parts = guestsToCreate.map((g,i) => {
+        const cols = [`"text_mkqreer2":"${g.name.replace(/"/g,'\\"')}"`];
+        if (g.cargo)   cols.push(`"text_mkqry55n":"${g.cargo.replace(/"/g,'\\"')}"`);
+        if (g.empresa) cols.push(`"text_mkqrghw1":"${g.empresa.replace(/"/g,'\\"')}"`);
+        const colString = `{${cols.join(',')}}`.replace(/"/g,'\\"');
+        return `
+          m${i}: create_item(
+            board_id: ${GUEST_BOARD_ID},
+            item_name: "${g.name.replace(/"/g,'\\"')}",
+            column_values: "${colString}"
+          ) { id }
+        `;
+      }).join('\n');
+      const batch = `mutation {${parts}}`;
+      const resp  = await mondayMutation(batch);
+      guestsToCreate.forEach((g,i) => g.id = resp[`m${i}`].id);
+      guestsToCreate = [];
+    }
+
+    // 2) coletar campos da atividade
+    const title      = document.getElementById('text_mkqrhjas').value;
+    const titleEsc   = title.replace(/"/g,'\\"');
+    const days       = document.getElementById('short_textb7obn15q').value;
+    const maxG       = document.getElementById('text_mkqrjadb').value;
+    const duration   = document.getElementById('text_mkqrvnnp').value;
+    const desc       = document.getElementById('long_text_mkqr5e1x').value;
+    const extras     = document.getElementById('text_mkqrqmfw').value;
+    const restr      = document.getElementById('text_mkqrrpq3').value;
+    const ageRange   = document.getElementById('text_mkqrrpq3_range').value;
+    const pub        = document.getElementById('text_mkqr6nqa').value;
+    const guestIds   = selectedGuests.map(g=>g.id);
+    const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
+    const [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
+
+    // 3) montar column_values da atividade
+    const vals = {
+      text_mkqrhjas:      title,
+      short_textossh5v4j: fmt.value,
+      ...(days && { short_textb7obn15q: days }),
+      ...(maxG && { text_mkqrjadb: maxG }),
+      text_mkqrvnnp:      duration,
+      long_text_mkqr5e1x: desc,
+      text_mkqrqmfw:      extras,
+      text_mkqrrpq3:      restr==='Sim'? ageRange: restr,
+      text_mkqrwawz:      temaP,
+      text_mkqrm18v:      subP,
+      text_mkqrth67:      temaS,
+      text_mkqrfjz3:      subS,
+      text_mkqr6nqa:      pub,
+      color_mkqr22e3:     { label: 'Caixa de Entrada' },
+      ...(guestIds.length && {
+        board_relation_mkqr6b1t: {
+          linkedPulseIds: guestIds.map(id=>({ linkedPulseId: id }))
+        }
+      })
+    };
+    const colJson = JSON.stringify(vals)
+      .replace(/\\/g,'\\\\')
+      .replace(/"/g,'\\"')
+      .replace(/\n/g,'\\n');
+    const mutation = `
+      mutation {
+        create_item(
+          board_id: ${BOARD_ID},
+          item_name: "${titleEsc}",
+          column_values: "${colJson}"
+        ) { id }
+      }
+    `;
+    try {
+      const r = await mondayMutation(mutation);
+      alert('Atividade criada! ID: ' + r.create_item.id);
+      e.target.reset();
+      selectedGuests = [];
+      renderSlots();
+      buildTree('temaPrincipalTree','temaPrincipalValue');
+      buildTree('temaSecundarioTree','temaSecundarioValue');
+      fmt.dispatchEvent(new Event('change'));
+      document.getElementById('text_mkqrrpq3').dispatchEvent(new Event('change'));
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao criar atividade. Veja console.');
+    }
+  });
+
+  renderSlots();
+});
+</script>
+
 </body>
 </html>
