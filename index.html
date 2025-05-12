@@ -260,7 +260,7 @@
     }
   }
 
-  // ————— Renderiza os slots de convidados + botão “+” —————
+  // ————— Renderiza slots de convidados + botão “+” —————
   function renderSlots() {
     const c = document.getElementById('guestSlots');
     c.innerHTML = '';
@@ -316,12 +316,14 @@
     });
   document.getElementById('closeGuestModal').onclick = closeGuestModal;
 
-  // ————— Helper para cascata Tema→Subtema —————
+  // ————— Helper para cascata Tema→Subtema com “← Voltar” —————
   function setupCascade({ themeSelectId, hintId, chosenSpanId }) {
     const sel    = document.getElementById(themeSelectId);
     const hint   = document.getElementById(hintId);
     const chosen = document.getElementById(chosenSpanId);
     let temaSel  = null;
+
+    // definição estática de subtemas
     const subtemasPorTema = {
       "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
       "Comunicação":      ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/ Industrial","Podcast"],
@@ -341,30 +343,52 @@
       "Sustentabilidade":  ["Desenvolvimento Sustentável","Economia Circular","Eficiência Energética","Energia Renovável","Gestão de Resíduos","Logística Reversa","Meio Ambiente","Mudanças Climáticas","ODS"],
       "Tecnologias de Conectividade, Robótica e Computação Avançada": ["5G","6G","Computação Quântica","Internet das Coisas","Robótica","Sistemas Embarcados"]
     };
+
+    // popula inicialmente com lista de temas
+    function populaTemas() {
+      sel.innerHTML = '<option value="">-- selecione o tema --</option>';
+      Object.keys(subtemasPorTema).forEach(t => {
+        const o = new Option(t, t);
+        sel.appendChild(o);
+      });
+    }
+    populaTemas();
+
     sel.addEventListener('change', () => {
       const v = sel.value;
+      // etapa 1: escolhendo tema
       if (!temaSel) {
         if (!v) return;
         temaSel = v;
         chosen.textContent = v;
         hint.classList.remove('hidden');
-        const subs = subtemasPorTema[v] || [];
-        sel.innerHTML = '<option value="">-- selecione o subtema --</option>';
-        subs.forEach(s => {
-          const o = document.createElement('option');
-          o.value = s;
-          o.textContent = s;
+
+        // “← Voltar” + subtemas
+        sel.innerHTML = '<option value="">← Voltar</option>';
+        (subtemasPorTema[v] || []).forEach(s => {
+          const o = new Option(s, s);
           sel.appendChild(o);
         });
+
+      // etapa 2: escolhendo subtema ou voltando
+      } else {
+        if (v === "") {
+          // resetar para escolha de tema de novo
+          temaSel = null;
+          hint.classList.add('hidden');
+          populaTemas();
+        }
+        // caso contrário é um subtema: mantemos o valor em sel.value
       }
     });
+
     return {
       getTheme:    () => temaSel,
       getSubtheme: () => sel.value
     };
   }
 
-  // ————— Configurações das duas cascatas —————
+  // ————— Cria as duas cascatas —————
   const principal = setupCascade({
     themeSelectId:  'temaPrincipalSelect',
     hintId:         'temaPrincipalHint',
@@ -379,11 +403,13 @@
   // ————— Contadores de caracteres —————
   document.getElementById('long_text_mkqr5e1x')
     .addEventListener('input', e => {
-      document.getElementById('descCounter').textContent = `${e.target.value.length}/700`;
+      document.getElementById('descCounter').textContent =
+        `${e.target.value.length}/700`;
     });
   document.getElementById('text_mkqrqmfw')
     .addEventListener('input', e => {
-      document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`;
+      document.getElementById('extrasCounter').textContent =
+        `${e.target.value.length}/700`;
     });
 
   // ————— Toggle campos dinâmicos —————
@@ -410,27 +436,27 @@
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
 
-    // 1) Captura valores
-    const titleRaw    = document.getElementById('text_mkqrhjas').value;
-    const titleEsc    = titleRaw.replace(/"/g,'\\"');
-    const format      = formatSelect.value;
-    const days        = document.getElementById('short_textb7obn15q').value;
-    const maxGuests   = document.getElementById('text_mkqrjadb').value;
-    const duration    = document.getElementById('text_mkqrvnnp').value;
-    const desc        = document.getElementById('long_text_mkqr5e1x').value;
-    const extras      = document.getElementById('text_mkqrqmfw').value;
-    const restr       = restrSelect.value;
-    const ageRange    = document.getElementById('text_mkqrrpq3_range').value;
-    const pub         = document.getElementById('text_mkqr6nqa').value;
-    const guestIds    = selectedGuests.map(g=>g.id);
+    // captura de todos os campos
+    const titleRaw     = document.getElementById('text_mkqrhjas').value;
+    const titleEsc     = titleRaw.replace(/"/g,'\\"');
+    const format       = formatSelect.value;
+    const days         = document.getElementById('short_textb7obn15q').value;
+    const maxGuests    = document.getElementById('text_mkqrjadb').value;
+    const duration     = document.getElementById('text_mkqrvnnp').value;
+    const desc         = document.getElementById('long_text_mkqr5e1x').value;
+    const extras       = document.getElementById('text_mkqrqmfw').value;
+    const restr        = restrSelect.value;
+    const ageRange     = document.getElementById('text_mkqrrpq3_range').value;
+    const publico      = document.getElementById('text_mkqr6nqa').value;
+    const guestIds     = selectedGuests.map(g=>g.id);
 
-    // cascatas
-    const temaPrincipal    = principal.getTheme();
-    const subtemaPrincipal = principal.getSubtheme();
-    const temaSecundario   = secundario.getTheme();
-    const subtemaSecundario= secundario.getSubtheme();
+    // coleta dos temas e subtemas das cascatas
+    const temaP    = principal.getTheme();
+    const subtemaP = principal.getSubtheme();
+    const temaS    = secundario.getTheme();
+    const subtemaS = secundario.getSubtheme();
 
-    // 2) Monta column_values
+    // monta column_values
     const vals = {
       text_mkqrhjas:      titleRaw,
       short_textossh5v4j: format,
@@ -440,11 +466,11 @@
       long_text_mkqr5e1x: desc,
       text_mkqrqmfw:      extras,
       text_mkqrrpq3:      restr==='Sim'?ageRange:restr,
-      text_mkqrwawz:      temaPrincipal,
-      text_mkqrm18v:      subtemaPrincipal,
-      text_mkqrth67:      temaSecundario,
-      text_mkqrfjz3:      subtemaSecundario,
-      text_mkqr6nqa:      pub,
+      text_mkqrwawz:      temaP,
+      text_mkqrm18v:      subtemaP,
+      text_mkqrth67:      temaS,
+      text_mkqrfjz3:      subtemaS,
+      text_mkqr6nqa:      publico,
       color_mkqr22e3:     { label: 'Caixa de Entrada' },
       ...(guestIds.length && {
         board_relation_mkqr6b1t:{
@@ -453,7 +479,7 @@
       })
     };
 
-    // 3) Stringify + escape
+    // escape + stringify
     const colJson = JSON.stringify(vals)
       .replace(/\\/g,'\\\\')
       .replace(/"/g,'\\"')
@@ -467,7 +493,8 @@
         ) { id }
       }
     `;
-    // 4) Envio e tratamento de erro
+
+    // envio e tratamento de erros
     try {
       const data = await mondayMutation(mutation);
       alert('Atividade criada! ID: ' + data.create_item.id);
@@ -496,6 +523,7 @@
     renderSlots();
   })();
 </script>
+
 
 
 
