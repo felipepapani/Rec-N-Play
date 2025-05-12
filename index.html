@@ -26,7 +26,7 @@
   </style>
 </head>
 <body>
-  <h1>Nova Atividade</h1>
+  <h1>Noaa Atividade</h1>
   <form id="activityForm">
     <label>
       Nome da Atividade:
@@ -305,31 +305,34 @@
       e.preventDefault();
       // 1) cria convidados novos
       if (guestsToCreate.length) {
+        // 1) monta as operações de criação de convidados no Monday
         const parts = guestsToCreate.map((g,i) => {
-        const cols = [];
-        cols.push(
-          `"text_mkqreer2":{"text":"${g.name.replace(/"/g,'\\"')}"}`
-        );
-        if (g.cargo)   cols.push(
-          `"text_mkqry55n":{"text":"${g.cargo.replace(/"/g,'\\"')}"}`
-        );
-        if (g.empresa) cols.push(
-          `"text_mkqrghw1":{"text":"${g.empresa.replace(/"/g,'\\"')}"}`
-        );
-        const colString = `{${cols.join(',')}}`.replace(/"/g,'\\"');
-        return `
-          m${i}: create_item(
-            board_id: ${GUEST_BOARD_ID},
-            item_name: "${g.name.replace(/"/g,'\\"')}",
-            column_values: "${colString}"
-          ) { id }
-        `;
-      }).join('\n');
+          const cols = [];
+          cols.push(`"text_mkqreer2":{"text":"${g.name.replace(/"/g,'\\"')}"}`);
+          if (g.cargo)   cols.push(`"text_mkqry55n":{"text":"${g.cargo.replace(/"/g,'\\"')}"}`);
+          if (g.empresa) cols.push(`"text_mkqrghw1":{"text":"${g.empresa.replace(/"/g,'\\"')}"}`);
+          const colString = `{${cols.join(',')}}`.replace(/"/g,'\\"');
+          return `
+            m${i}: create_item(
+              board_id: ${GUEST_BOARD_ID},
+              item_name: "${g.name.replace(/"/g,'\\"')}",
+              column_values: "${colString}"
+            ) { id }
+          `;
+        }).join('\n');
 
         const batch = `mutation {
           ${parts}
         }`;
-        // aí você faz mondayMutation(batch)...
+
+        // 2) envia o batch para criar todos os convidados de uma vez
+        const res = await mondayMutation(batch);
+
+        // 3) atribui os IDs retornados aos objetos guest e limpa o array
+        guestsToCreate.forEach((g,i) => {
+          g.id = res[`m${i}`].id;
+        });
+        guestsToCreate = [];
       }
       // 2) coleta form
       const title  = document.getElementById('text_mkqrhjas').value,
