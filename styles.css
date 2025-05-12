@@ -1,8 +1,3 @@
-#temaPrincipalSelect,
-#temaSecundarioSelect {
-  width: 100%;
-}
-
 :root {
   /* Cores do REC n Play 2025 */
   --primary-color: #8A2BE2;
@@ -26,62 +21,13 @@ body {
   background-color: var(--background-color);
   color: var(--font-color);
   display: flex;
-  flex-direction: column; /* empilha titulo e container */
+  flex-direction: column; /* empilha título e container */
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   padding: 2rem;
 }
 
-.app-container {
-  display: flex;
-  width: 100%;
-  max-width: 1200px;
-  gap: 2rem;
-}
-
-.form-container {
-  flex: 1;
-  /* Centraliza título e formulário verticalmente */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.sidebar {
-  flex: 1;
-  position: relative;
-  background-color: #fff;
-  border-radius: var(--border-radius);
-  overflow: hidden;
-}
-
-/* Formas geométricas decorativas */
-.sidebar::before {
-  content: '';
-  position: absolute;
-  width: 150px;
-  height: 150px;
-  background-color: var(--primary-color);
-  border-radius: 50%;
-  top: -40px;
-  left: -40px;
-  opacity: 0.8;
-}
-
-.sidebar::after {
-  content: '';
-  position: absolute;
-  width: 200px;
-  height: 200px;
-  background-color: var(--secondary-color);
-  clip-path: polygon(0 0, 100% 0, 0 100%);
-  bottom: -50px;
-  right: -50px;
-  opacity: 0.8;
-}
-
-/* Formulário */
 form {
   background-color: #fff;
   padding: 2rem;
@@ -89,6 +35,8 @@ form {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: grid;
   grid-gap: 1.5rem;
+  width: 100%;
+  max-width: 800px;
 }
 
 h1 {
@@ -261,9 +209,53 @@ button[type="submit"]:active {
   color: #fff;
 }
 
+/* Cascata Tema → Subtema */
+#temaPrincipalTree,
+#temaSecundarioTree {
+  border: 1px solid #ccd0d5;
+  border-radius: var(--border-radius);
+  padding: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#temaPrincipalTree details,
+#temaSecundarioTree details {
+  margin-bottom: 0.5rem;
+}
+
+#temaPrincipalTree summary,
+#temaSecundarioTree summary {
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0.25rem;
+}
+
+#temaPrincipalTree .subtema-item,
+#temaSecundarioTree .subtema-item {
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  border-radius: var(--border-radius);
+  transition: background-color var(--transition-duration);
+}
+
+#temaPrincipalTree .subtema-item:hover,
+#temaSecundarioTree .subtema-item:hover {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+#temaPrincipalTree .subtema-item[style*="font-weight: bold"],
+#temaSecundarioTree .subtema-item[style*="font-weight: bold"] {
+  background-color: var(--secondary-color);
+  color: #333;
+}
+
+/* Responsivo */
 @media (max-width: 900px) {
-  .app-container {
-    flex-direction: column;
+  form {
+    padding: 1.5rem;
+    grid-gap: 1rem;
   }
 }
 
@@ -272,7 +264,6 @@ button[type="submit"]:active {
     padding: 1rem;
   }
   form {
-    padding: 1.5rem;
-    grid-gap: 1rem;
+    padding: 1rem;
   }
 }
