@@ -10,17 +10,26 @@
     form { display: grid; gap: 1rem; }
     label { display: flex; flex-direction: column; }
     input, textarea, select, button { padding: .4rem; font-size: 1rem; }
-    button { width: fit-content; cursor: pointer; }
     .char-counter { font-size: .9rem; color: #666; }
     .hidden { display: none; }
+
+    .guest-slots { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+    .guest-slot { background: #8A2BE2; color: #fff; padding: .5rem 1rem; border-radius: 8px; display: flex; align-items: center; }
+    .guest-slot .remove { background: transparent; border: none; color: #fff; margin-left: .5rem; cursor: pointer; }
+
+    #addGuestBtn { background: #00FF7F; border: none; width: 2rem; height: 2rem; border-radius: 50%; font-size: 1.5rem; cursor: pointer; }
+
+    .modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; }
+    .modal.hidden { display: none; }
+    .modal .content { background: #fff; padding: 2rem; border-radius: 8px; width:90%; max-width:400px; }
+    .modal .content input { width:100%; margin-bottom:1rem; }
   </style>
 </head>
 <body>
   <h1>Nova Atividade</h1>
   <form id="activityForm">
-
     <label>
-      Nome da Atividade:
+      Noaa da Atividade:
       <input type="text" id="text_mkqrhjas" required>
     </label>
 
@@ -92,10 +101,8 @@
       <input type="hidden" id="temaSecundarioValue" name="temaSecundarioValue">
     </label>
 
-    
-
     <label>
-      público:
+      Público:
       <select id="text_mkqr6nqa">
         <option value="">-- selecione --</option>
         <option>especialista no tema</option>
@@ -124,20 +131,18 @@
       </select>
     </label>
 
-     <!-- Restrição de faixa etária -->
-     <label>
-        Restrição de faixa etária:
-        <select id="text_mkqrrpq3" required>
-          <option value="">-- selecione --</option>
-          <option value="Não">Não</option>
-          <option value="Sim">Sim</option>
-        </select>
-      </label>
-      <label id="ageRangeLabel" class="hidden">
-        Informe a faixa etária (text_mkqrrpq3_range):
-        <input type="text" id="text_mkqrrpq3_range" placeholder="ex: 18-25">
-      </label>
-  
+    <label>
+      Restrição de faixa etária:
+      <select id="text_mkqrrpq3" required>
+        <option value="">-- selecione --</option>
+        <option value="Não">Não</option>
+        <option value="Sim">Sim</option>
+      </select>
+    </label>
+    <label id="ageRangeLabel" class="hidden">
+      Informe a faixa etária:
+      <input type="text" id="text_mkqrrpq3_range" placeholder="ex: 18-25">
+    </label>
 
     <label>
       Informações extras:
@@ -145,293 +150,243 @@
       <div class="char-counter" id="extrasCounter">0/700</div>
     </label>
 
-   
-     <label>Convidados:</label>
-    <div class="guest-slots" id="guestSlots">
-      <!-- aqui serão adicionados até 6 .guest-slot -->
-    </div>
+    <label>Convidados:</label>
+    <div class="guest-slots" id="guestSlots"></div>
 
     <button type="submit">Criar Atividade</button>
   </form>
-  
 
-
-    <div id="guestModal" class="modal hidden">
-      <div class="content">
-        <h3>Novo Convidado</h3>
-        <input id="guestNameInput" placeholder="Nome" />
-        <input id="guestCargoInput" placeholder="Cargo" />
-        <input id="guestEmpresaInput" placeholder="Empresa" />
-        <button id="saveGuestBtn" type="button">Salvar convidado</button>
-        <button id="closeGuestModal" type="button">Fechar</button>
-      </div>
+  <!-- modal de criação de convidado -->
+  <div id="newGuestModal" class="modal hidden">
+    <div class="content">
+      <h3>Novo Convidado</h3>
+      <input id="guestNameInput" placeholder="Nome" />
+      <input id="guestCargoInput" placeholder="Cargo" />
+      <input id="guestEmpresaInput" placeholder="Empresa" />
+      <button id="saveGuestBtn" type="button">Salvar convidado</button>
+      <button id="closeGuestModalBtn" type="button">Fechar</button>
     </div>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  // ————— Configurações gerais —————
-  const API_URL        = 'https://plain-butterfly-7001.programacao-e50.workers.dev';
-  const BOARD_ID       = 9099133664;
-  const GUEST_BOARD_ID = 9102764459;
+  </div>
 
-  // ————— Estado global —————
-  let selectedGuests = [];
-  let guestsToCreate = [];
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const API_URL        = 'https://plain-butterfly-7001.programacao-e50.workers.dev';
+    const BOARD_ID       = 9099133664;
+    const GUEST_BOARD_ID = 9102764459;
 
-  // ————— Função GraphQL genérica —————
-  async function mondayMutation(query) {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query })
-    });
-    const j = await res.json();
-    if (!res.ok) throw j.errors || j;
-    if (j.errors) throw j.errors;
-    return j.data;
-  }
+    let selectedGuests = [];
+    let guestsToCreate = [];
 
-  // ————— Renderiza slots de convidados + botão “+” —————
-  function renderSlots() {
-    const c = document.getElementById('guestSlots');
-    if (!c) return;
-    c.innerHTML = '';
-    selectedGuests.forEach((g,i) => {
-      const d = document.createElement('div');
-      d.className = 'guest-slot';
-      d.textContent = g.name;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'remove';
-      btn.innerHTML = '&times;';
-      btn.onclick = () => { selectedGuests.splice(i,1); renderSlots(); };
-      d.appendChild(btn);
-      c.appendChild(d);
-    });
-    if (selectedGuests.length < 6) {
-      const b = document.createElement('button');
-      b.type = 'button'; b.id = 'addGuestBtn'; b.textContent = '+';
-      b.onclick = openGuestModal;
-      c.appendChild(b);
-    }
-  }
-
-  // ————— Modal de “Novo Convidado” —————
-  function openGuestModal() {
-    const m = document.getElementById('guestModal');
-    if (!m) return;
-    m.classList.remove('hidden');
-    ['guestNameInput','guestCargoInput','guestEmpresaInput'].forEach(id=>{
-      const inp = document.getElementById(id);
-      if (inp) inp.value = '';
-    });
-  }
-  function closeGuestModal() {
-    const m = document.getElementById('guestModal');
-    if (m) m.classList.add('hidden');
-  }
-
-  const closeBtn = document.getElementById('closeGuestModal');
-  if (closeBtn) closeBtn.onclick = closeGuestModal;
-
-  const saveBtn = document.getElementById('saveGuestBtn');
-  if (saveBtn) saveBtn.onclick = () => {
-    const nameEl    = document.getElementById('guestNameInput');
-    const cargoEl   = document.getElementById('guestCargoInput');
-    const empresaEl = document.getElementById('guestEmpresaInput');
-    const name      = nameEl?.value.trim()    || '';
-    const cargo     = cargoEl?.value.trim()   || '';
-    const empresa   = empresaEl?.value.trim() || '';
-    if (!name) {
-      alert('Informe ao menos o nome do convidado.');
-      return;
-    }
-    const guest = { id: null, name, cargo, empresa };
-    selectedGuests.push(guest);
-    guestsToCreate.push(guest);
-    closeGuestModal();
-    renderSlots();
-  };
-
-  // ————— Subtemas por tema —————
-  const subtemasPorTema = {
-    "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
-    "Comunicação": ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/Industrial","Podcast"],
-    "Dados e Segurança Digital": ["Análise de Dados","Blockchain","Cibersegurança","Governança de Dados","Investimentos/Criptomoedas","LGPD","NFT","Privacidade","Web3"],
-    "Desenvolvimento de Software e Cloud": ["Desenvolvimento de Software e Cloud","Low Code/No Code","Programação de Software"],
-    "Diversidade e Inclusão": ["50+","Acessibilidade/PCD","Equidade Racial","LGBTQIAPN+","Mulheres","Neurodivergência","Periferias"],
-    "Empreendedorismo e Inovação": ["Ecossistemas de Inovação","Empresa Júnior","Gestão de Comunidades","Inovação Aberta","Internacionalização","Startup","Transformação Digital"],
-    "Games e Design": ["Desenvolvimento de Jogos","e-Sports","Experiência do Usuário (UX/CX)","Gameficação","Interface do Usuário (UI)"],
-    "Gente e Gestão": ["Carreira Profissional","Cultura Organizacional","Desenvolvimento de Times","Formação","RH","Softskills"],
-    "Governança": ["ESG","Governança de Dados","Impacto Social","Legislação","Responsabilidade Social"],
-    "Inteligência Artificial, Tecnologias Imersivas e Metaverso": ["Realidade Virtual","Deep Learning","Engenharia de Prompt","Inteligência Artificial","LLM","Machine Learning","Metaverso","Processamento de Linguagem Natural","Realidade Aumentada/Realidade Mista","Visão Computacional"],
-    "Investimentos": ["Captação de Recursos","Investimento em Inovação","Criptomoedas"],
-    "Política e Cidadania": ["Cidadania Digital","Direito","Educação","Empregabilidade","Geopolítica","Infância","Mobilidade Urbana","Saúde","Turismo","Urbanismo"],
-    "Processos e Técnicas de Mercado": ["Agilidade","Atacado e Varejo","Branding","Canais de Venda","Comportamento do Consumidor","E-commerce","Experiência do Cliente","Marketing","Vendas B2B/B2C"],
-    "Setores Tech": ["Agritech","Cleantech","Construtech","Ecotech","Edutech","Fintech","Foodtech","Govtech","Healthtech","Lawtech","Retailtech","Sportech"],
-    "Simulação e Modelagem": ["Corte a Laser","Impressão 3D","Modelagem 3D"],
-    "Sustentabilidade": ["Desenvolvimento Sustentável","Economia Circular","Eficiência Energética","Energia Renovável","Gestão de Resíduos","Logística Reversa","Meio Ambiente","Mudanças Climáticas","ODS"],
-    "Tecnologias de Conectividade, Robótica e Computação Avançada": ["5G","6G","Computação Quântica","IoT","Robótica","Sistemas Embarcados"]
-  };
-
-  // ————— Constrói árvore Tema→Subtema —————
-  function buildTree(containerId, hiddenInputId) {
-    const container = document.getElementById(containerId);
-    const hidden    = document.getElementById(hiddenInputId);
-    if (!container || !hidden) return;
-    container.innerHTML = '';
-    Object.entries(subtemasPorTema).forEach(([tema, subs]) => {
-      const det = document.createElement('details');
-      const sum = document.createElement('summary');
-      sum.textContent = tema;
-      det.appendChild(sum);
-      subs.forEach(sub => {
-        const div = document.createElement('div');
-        div.className = 'subtema-item';
-        div.textContent = sub;
-        div.onclick = () => {
-          hidden.value = `${tema} → ${sub}`;
-          container.querySelectorAll('.subtema-item').forEach(el => el.style.fontWeight = '');
-          div.style.fontWeight = 'bold';
-        };
-        det.appendChild(div);
+    async function mondayMutation(query) {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query })
       });
-      container.appendChild(det);
-    });
-  }
-
-  // ————— Inicializa árvores —————
-  buildTree('temaPrincipalTree','temaPrincipalValue');
-  buildTree('temaSecundarioTree','temaSecundarioValue');
-
-  // ————— Contadores de caracteres —————
-  const descTA   = document.getElementById('long_text_mkqr5e1x');
-  const extraTA  = document.getElementById('text_mkqrqmfw');
-  if (descTA) descTA.addEventListener('input', e => {
-    document.getElementById('descCounter').textContent = `${e.target.value.length}/700`;
-  });
-  if (extraTA) extraTA.addEventListener('input', e => {
-    document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`;
-  });
-
-  // ————— Toggle de campos dinâmicos —————
-  const formatSelect = document.getElementById('short_textossh5v4j');
-  const daysLabel    = document.getElementById('daysLabel');
-  const maxLabel     = document.getElementById('maxGuestsLabel');
-  const restrSelect  = document.getElementById('text_mkqrrpq3');
-  const ageLabel     = document.getElementById('ageRangeLabel');
-  const showDays     = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon','Intervenção urbana','Demonstração','Experiência','Visitas/ percursos guiados','Campeonato','Exposição artística','Feira']);
-  const showMax      = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
-
-  if (formatSelect && daysLabel && maxLabel) {
-    formatSelect.addEventListener('change', () => {
-      daysLabel.classList.toggle('hidden', !showDays.has(formatSelect.value));
-      maxLabel .classList.toggle('hidden', !showMax.has(formatSelect.value));
-    });
-    formatSelect.dispatchEvent(new Event('change'));
-  }
-  if (restrSelect && ageLabel) {
-    restrSelect.addEventListener('change', () => {
-      ageLabel.classList.toggle('hidden', restrSelect.value !== 'Sim');
-    });
-    restrSelect.dispatchEvent(new Event('change'));
-  }
-
-  // ————— Submissão do formulário —————
-  const form = document.getElementById('activityForm');
-  if (form) form.addEventListener('submit', async e => {
-    e.preventDefault();
-
-    // 1) Cria convidados novos no Monday
-    if (guestsToCreate.length) {
-      const parts = guestsToCreate.map((g,i) => `
-        m${i}: create_item(
-          board_id: ${GUEST_BOARD_ID},
-          item_name: "${g.name.replace(/"/g,'\\"')}",
-          column_values: "{\\"text_mkqreer2\\":\\"${g.name.replace(/"/g,'\\"')}\\"${
-            g.cargo   ? `,\\"text_mkqry55n\\":\\"${g.cargo.replace(/"/g,'\\"')}\\"` : ''
-          }${
-            g.empresa ? `,\\"text_mkqrghw1\\":\\"${g.empresa.replace(/"/g,'\\"')}\\"` : ''
-          }}")`).join('\n');
-      const batch = `mutation {${parts}}`;
-      const res   = await mondayMutation(batch);
-      guestsToCreate.forEach((g,i) => g.id = res[`m${i}`].id);
-      guestsToCreate = [];
+      const j = await res.json();
+      if (!res.ok) throw j.errors || j;
+      if (j.errors) throw j.errors;
+      return j.data;
     }
 
-    // 2) Captura valores do form
-    const title  = document.getElementById('text_mkqrhjas').value;
-    const titleEsc = title.replace(/"/g,'\\"');
-    const days     = document.getElementById('short_textb7obn15q').value;
-    const maxG     = document.getElementById('text_mkqrjadb').value;
-    const duration = document.getElementById('text_mkqrvnnp').value;
-    const desc     = descTA?.value || '';
-    const extras   = extraTA?.value || '';
-    const restr    = restrSelect?.value;
-    const ageRange = document.getElementById('text_mkqrrpq3_range').value;
-    const pub      = document.getElementById('text_mkqr6nqa').value;
-    const guestIds = selectedGuests.map(g=>g.id);
+    function renderSlots() {
+      const c = document.getElementById('guestSlots');
+      c.innerHTML = '';
+      selectedGuests.forEach((g,i) => {
+        const d = document.createElement('div');
+        d.className = 'guest-slot';
+        d.textContent = g.name;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'remove';
+        btn.innerHTML = '&times;';
+        btn.onclick = () => { selectedGuests.splice(i,1); renderSlots(); };
+        d.appendChild(btn);
+        c.appendChild(d);
+      });
+      if (selectedGuests.length < 6) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.id = 'addGuestBtn'; b.textContent = '+';
+        b.onclick = () => {
+          document.getElementById('newGuestModal').classList.remove('hidden');
+          ['guestNameInput','guestCargoInput','guestEmpresaInput'].forEach(id=>{
+            document.getElementById(id).value = '';
+          });
+        };
+        c.appendChild(b);
+      }
+    }
 
-    // 3) Separa tema/subtema
-    const [temaP, subP=''] = (document.getElementById('temaPrincipalValue').value||'').split(' → ');
-    const [temaS, subS=''] = (document.getElementById('temaSecundarioValue').value||'').split(' → ');
-
-    // 4) Monta column_values
-    const vals = {
-      text_mkqrhjas:      title,
-      short_textossh5v4j: formatSelect.value,
-      ...(days   && { short_textb7obn15q: days   }),
-      ...(maxG   && { text_mkqrjadb:      maxG   }),
-      text_mkqrvnnp:      duration,
-      long_text_mkqr5e1x: desc,
-      text_mkqrqmfw:      extras,
-      text_mkqrrpq3:      restr==='Sim'? ageRange: restr,
-      text_mkqrwawz:      temaP,
-      text_mkqrm18v:      subP,
-      text_mkqrth67:      temaS,
-      text_mkqrfjz3:      subS,
-      text_mkqr6nqa:      pub,
-      color_mkqr22e3:     { label: 'Caixa de Entrada' },
-      ...(guestIds.length && {
-        board_relation_mkqr6b1t: {
-          linkedPulseIds: guestIds.map(id=>({ linkedPulseId:id }))
-        }
-      })
+    document.getElementById('closeGuestModalBtn').onclick = () => {
+      document.getElementById('newGuestModal').classList.add('hidden');
+    };
+    document.getElementById('saveGuestBtn').onclick = () => {
+      const name    = document.getElementById('guestNameInput').value.trim();
+      const cargo   = document.getElementById('guestCargoInput').value.trim();
+      const empresa = document.getElementById('guestEmpresaInput').value.trim();
+      if (!name) return alert('Informe ao menos o nome');
+      const guest = { id: null, name, cargo, empresa };
+      selectedGuests.push(guest);
+      guestsToCreate.push(guest);
+      document.getElementById('newGuestModal').classList.add('hidden');
+      renderSlots();
     };
 
-    // 5) Escapa e envia
-    const colJson = JSON.stringify(vals)
-      .replace(/\\/g,'\\\\')
-      .replace(/"/g,'\\"')
-      .replace(/\n/g,'\\n');
-    const mutation = `
-      mutation {
-        create_item(
-          board_id: ${BOARD_ID},
-          item_name: "${titleEsc}",
-          column_values: "${colJson}"
-        ) { id }
-      }`;
-    try {
-      const resp = await mondayMutation(mutation);
-      alert('Atividade criada! ID: ' + resp.create_item.id);
-      form.reset();
-      selectedGuests = [];
-      renderSlots();
-      buildTree('temaPrincipalTree','temaPrincipalValue');
-      buildTree('temaSecundarioTree','temaSecundarioValue');
-      formatSelect.dispatchEvent(new Event('change'));
-      restrSelect.dispatchEvent(new Event('change'));
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao criar atividade. Veja o console.');
+    // montar cascata Tema→Subtema
+    const subtemasPorTema = {
+      "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
+      "Comunicação":      ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/Industrial","Podcast"],
+      "Dados e Segurança Digital": ["Análise de Dados","Blockchain","Cibersegurança","Governança de Dados","Investimentos/Criptomoedas","LGPD","NFT","Privacidade","Web3"],
+      "Desenvolvimento de Software e Cloud": ["Desenvolvimento de Software e Cloud","Low Code/No Code","Programação de Software"],
+      "Diversidade e Inclusão": ["50+","Acessibilidade/PCD","Equidade Racial","LGBTQIAPN+","Mulheres","Neurodivergência","Periferias"],
+      "Empreendedorismo e Inovação": ["Ecossistemas de Inovação","Empresa Júnior","Gestão de Comunidades","Inovação Aberta","Internacionalização","Startup","Transformação Digital"],
+      "Games e Design":    ["Desenvolvimento de Jogos","e-Sports","Experiência do Usuário (UX/CX)","Gameficação","Interface do Usuário (UI)"],
+      "Gente e Gestão":    ["Carreira Profissional","Cultura Organizacional","Desenvolvimento de Times","Formação","RH","Softskills"],
+      "Governança":        ["ESG","Governança de Dados","Impacto Social","Legislação","Responsabilidade Social"],
+      "Inteligência Artificial, Tecnologias Imersivas e Metaverso": ["Realidade Virtual","Deep Learning","Engenharia de Prompt","Inteligência Artificial","LLM","Machine Learning","Metaverso","Processamento de Linguagem Natural","Realidade Aumentada/Realidade Mista","Visão Computacional"],
+      "Investimentos":     ["Captação de Recursos","Investimento em Inovação","Criptomoedas"],
+      "Política e Cidadania": ["Cidadania Digital","Direito","Educação","Empregabilidade","Geopolítica","Infância","Mobilidade Urbana","Saúde","Turismo","Urbanismo"],
+      "Processos e Técnicas de Mercado": ["Agilidade","Atacado e Varejo","Branding","Canais de Venda","Comportamento do Consumidor","E-commerce","Experiência do Cliente","Marketing","Vendas B2B/B2C"],
+      "Setores Tech":      ["Agritech","Cleantech","Construtech","Ecotech","Edutech","Fintech","Foodtech","Govtech","Healthtech","Lawtech","Retailtech","Sportech"],
+      "Simulação e Modelagem": ["Corte a Laser","Impressão 3D","Modelagem 3D"],
+      "Sustentabilidade":  ["Desenvolvimento Sustentável","Economia Circular","Eficiência Energética","Energia Renovável","Gestão de Resíduos","Logística Reversa","Meio Ambiente","Mudanças Climáticas","ODS"],
+      "Tecnologias de Conectividade, Robótica e Computação Avançada": ["5G","6G","Computação Quântica","IoT","Robótica","Sistemas Embarcados"]
+    };
+    function buildTree(containerId, hiddenInputId) {
+      const cont = document.getElementById(containerId),
+            hid  = document.getElementById(hiddenInputId);
+      cont.innerHTML = '';
+      for (let tema in subtemasPorTema) {
+        const det = document.createElement('details'),
+              sum = document.createElement('summary');
+        sum.textContent = tema;
+        det.appendChild(sum);
+        subtemasPorTema[tema].forEach(sub => {
+          const div = document.createElement('div');
+          div.className = 'subtema-item';
+          div.textContent = sub;
+          div.onclick = () => {
+            hid.value = `${tema} → ${sub}`;
+            cont.querySelectorAll('.subtema-item').forEach(el=>el.style.fontWeight='');
+            div.style.fontWeight='bold';
+          };
+          det.appendChild(div);
+        });
+        cont.appendChild(det);
+      }
     }
+    buildTree('temaPrincipalTree','temaPrincipalValue');
+    buildTree('temaSecundarioTree','temaSecundarioValue');
+
+    // char counters
+    document.getElementById('long_text_mkqr5e1x')
+      .addEventListener('input', e => document.getElementById('descCounter').textContent = `${e.target.value.length}/700`);
+    document.getElementById('text_mkqrqmfw')
+      .addEventListener('input', e => document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`);
+
+    // toggles
+    const fmt = document.getElementById('short_textossh5v4j'),
+          daysL = document.getElementById('daysLabel'),
+          maxL  = document.getElementById('maxGuestsLabel'),
+          rs    = document.getElementById('text_mkqrrpq3'),
+          ageL  = document.getElementById('ageRangeLabel'),
+          showD = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon','Intervenção urbana','Demonstração','Experiência','Visitas/ percursos guiados','Campeonato','Exposição artística','Feira']),
+          showM = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
+    fmt.addEventListener('change', ()=> {
+      daysL.classList.toggle('hidden', !showD.has(fmt.value));
+      maxL .classList.toggle('hidden', !showM.has(fmt.value));
+    });
+    rs.addEventListener('change', ()=> ageL.classList.toggle('hidden', rs.value!=='Sim'));
+    fmt.dispatchEvent(new Event('change'));
+    rs.dispatchEvent(new Event('change'));
+
+    // submit
+    document.getElementById('activityForm').addEventListener('submit', async e=>{
+      e.preventDefault();
+      // 1) cria convidados novos
+      if (guestsToCreate.length) {
+        const parts = guestsToCreate.map((g,i)=>`
+          m${i}: create_item(
+            board_id: ${GUEST_BOARD_ID},
+            item_name: "${g.name.replace(/"/g,'\\"')}",
+            column_values: "{\\"text_mkqreer2\\":\\"${g.name.replace(/"/g,'\\"')}\\"
+              ${g.cargo   ? `,\\"text_mkqry55n\\":\\"${g.cargo.replace(/"/g,'\\"')}\\\"` : ''}
+              ${g.empresa ? `,\\"text_mkqrghw1\\":\\"${g.empresa.replace(/"/g,'\\"')}\\\"` : ''}
+            }"
+          ) { id }
+        `).join('\n');
+        const batch = `mutation {${parts}}`;
+        const res = await mondayMutation(batch);
+        guestsToCreate.forEach((g,i)=> g.id = res[`m${i}`].id);
+        guestsToCreate = [];
+      }
+      // 2) coleta form
+      const title  = document.getElementById('text_mkqrhjas').value,
+            titleEsc = title.replace(/"/g,'\\"'),
+            days     = document.getElementById('short_textb7obn15q').value,
+            maxG     = document.getElementById('text_mkqrjadb').value,
+            duration = document.getElementById('text_mkqrvnnp').value,
+            desc     = document.getElementById('long_text_mkqr5e1x').value,
+            extras   = document.getElementById('text_mkqrqmfw').value,
+            restr    = document.getElementById('text_mkqrrpq3').value,
+            ageRange = document.getElementById('text_mkqrrpq3_range').value,
+            pub      = document.getElementById('text_mkqr6nqa').value,
+            guestIds = selectedGuests.map(g=>g.id);
+      const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → '),
+            [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
+      // 3) monta cols
+      const vals = {
+        text_mkqrhjas:      title,
+        short_textossh5v4j: fmt.value,
+        ...(days && { short_textb7obn15q: days }),
+        ...(maxG && { text_mkqrjadb: maxG }),
+        text_mkqrvnnp:      duration,
+        long_text_mkqr5e1x: desc,
+        text_mkqrqmfw:      extras,
+        text_mkqrrpq3:      restr==='Sim'? ageRange: restr,
+        text_mkqrwawz:      temaP,
+        text_mkqrm18v:      subP,
+        text_mkqrth67:      temaS,
+        text_mkqrfjz3:      subS,
+        text_mkqr6nqa:      pub,
+        color_mkqr22e3:     { label:'Caixa de Entrada' },
+        ...(guestIds.length && {
+          board_relation_mkqr6b1t:{
+            linkedPulseIds: guestIds.map(id=>({linkedPulseId:id}))
+          }
+        })
+      };
+      const colJson = JSON.stringify(vals)
+        .replace(/\\/g,'\\\\')
+        .replace(/"/g,'\\"')
+        .replace(/\n/g,'\\n');
+      const mutation = `
+        mutation {
+          create_item(
+            board_id: ${BOARD_ID},
+            item_name: "${titleEsc}",
+            column_values: "${colJson}"
+          ) { id }
+        }
+      `;
+      try {
+        const resp = await mondayMutation(mutation);
+        alert('Atividade criada! ID: '+resp.create_item.id);
+        e.target.reset();
+        selectedGuests = [];
+        renderSlots();
+        buildTree('temaPrincipalTree','temaPrincipalValue');
+        buildTree('temaSecundarioTree','temaSecundarioValue');
+        fmt.dispatchEvent(new Event('change'));
+        document.getElementById('text_mkqrrpq3').dispatchEvent(new Event('change'));
+      } catch(err) {
+        console.error(err);
+        alert('Erro ao criar atividade. Veja console.');
+      }
+    });
+
+    renderSlots();
   });
-
-  // render pela primeira vez
-  renderSlots();
-
-}); // DOMContentLoaded
-</script>
-
+  </script>
 </body>
 </html>
