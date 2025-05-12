@@ -310,29 +310,31 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
 
     // 1) cria novos convidados
-    if (guestsToCreate.length) {
-      const parts = guestsToCreate.map((g,i) => {
-        // **AGORA** cada coluna é { text: "valor" }
-        const payload = {
-          text_mkqreer2: { text: g.name },
-          ...(g.cargo   && { text_mkqry55n: { text: g.cargo } }),
-          ...(g.empresa && { text_mkqrghw1: { text: g.empresa } })
-        };
-        // serializa e escapa
-        const esc = JSON.stringify(payload).replace(/"/g,'\\"');
-        return `
-          m${i}: create_item(
-            board_id: ${GUEST_BOARD_ID},
-            item_name: "${g.name.replace(/"/g,'\\"')}",
-            column_values: "${esc}"
-          ) { id }
-        `;
-      }).join('\n');
-      const batch = `mutation {${parts}}`;
-      const res   = await mondayMutation(batch);
-      guestsToCreate.forEach((g,i) => g.id = res[`m${i}`].id);
-      guestsToCreate = [];
-    }
+   // 1) cria cada convidado individualmente
+if (guestsToCreate.length) {
+  for (const g of guestsToCreate) {
+    // monta um JSON simples: { "text_mkqreer2":"Nome", "text_mkqry55n":"Cargo", "text_mkqrghw1":"Empresa" }
+    const cols = {
+      text_mkqreer2: g.name
+    };
+    if (g.cargo)   cols.text_mkqry55n = g.cargo;
+    if (g.empresa) cols.text_mkqrghw1 = g.empresa;
+
+    const esc = JSON.stringify(cols).replace(/"/g, '\\"');
+    const query = `
+      mutation {
+        create_item(
+          board_id: ${GUEST_BOARD_ID},
+          item_name: "${g.name.replace(/"/g,'\\"')}",
+          column_values: "${esc}"
+        ) { id }
+      }
+    `;
+    const data = await mondayMutation(query);
+    g.id = data.create_item.id;
+  }
+  guestsToCreate = [];
+}
 
     // 2) coleta campos da atividade
     const title    = document.getElementById('text_mkqrhjas').value.trim();
