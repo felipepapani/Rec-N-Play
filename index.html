@@ -366,7 +366,7 @@
     const guestIds  = selectedGuests.map(g=>g.id);
 
     // 2) Separa Tema e Subtema
-    const [temaPrincipal, subtemaPrincipal=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
+    const [temaPrincipal, subtemaPrincipal='']   = document.getElementById('temaPrincipalValue').value.split(' → ');
     const [temaSecundario, subtemaSecundario=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
 
     // 3) Monta column_values
@@ -414,23 +414,17 @@
       document.getElementById('activityForm').reset();
       selectedGuests = [];
       renderSlots();
-      // re-renderiza árvore limpa
       buildTree('temaPrincipalTree','temaPrincipalValue');
       buildTree('temaSecundarioTree','temaSecundarioValue');
-      // retoggle
       formatSelect.dispatchEvent(new Event('change'));
       restrSelect.dispatchEvent(new Event('change'));
     } catch (err) {
       if (Array.isArray(err)) {
         alert('Falha:\n' + err.map(e=>e.message).join('\n'));
-        err.forEach((e,i)=>console.error(`❌ [${i}]`, e.message, e.extensions?.error_data));
-      } else if (err.error) {
-        alert('Erro do Worker:\n' + err.error);
-        console.error(err.error);
       } else {
         alert('Erro inesperado. Veja console.');
-        console.error(err);
       }
+      console.error(err);
     }
   });
 
@@ -440,5 +434,6 @@
     renderSlots();
   })();
 </script>
+
 </body>
 </html>
