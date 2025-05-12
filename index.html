@@ -26,7 +26,7 @@
   </style>
 </head>
 <body>
-  <h1>Noaa Atividade</h1>
+  <h1>Nova Atividade</h1>
   <form id="activityForm">
     <label>
       Nome da Atividade:
@@ -168,7 +168,7 @@
     </div>
   </div>
 
- <script>
+<script>
 document.addEventListener('DOMContentLoaded', () => {
   const API_URL        = 'https://plain-butterfly-7001.programacao-e50.workers.dev';
   const BOARD_ID       = 9099133664;
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Modal handlers
+  // modal handlers
   document.getElementById('closeGuestModalBtn').onclick = () => {
     document.getElementById('newGuestModal').classList.add('hidden');
   };
@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSlots();
   };
 
-  // Tema → Subtema data
+  // Tema → Subtema
   const subtemasPorTema = {
     "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
     "Comunicação":      ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/Industrial","Podcast"],
@@ -257,7 +257,6 @@ document.addEventListener('DOMContentLoaded', () => {
     "Sustentabilidade":  ["Desenvolvimento Sustentável","Economia Circular","Eficiência Energética","Energia Renovável","Gestão de Resíduos","Logística Reversa","Meio Ambiente","Mudanças Climáticas","ODS"],
     "Tecnologias de Conectividade, Robótica e Computação Avançada": ["5G","6G","Computação Quântica","IoT","Robótica","Sistemas Embarcados"]
   };
-
   function buildTree(containerId, hiddenInputId) {
     const cont = document.getElementById(containerId),
           hid  = document.getElementById(hiddenInputId);
@@ -281,17 +280,16 @@ document.addEventListener('DOMContentLoaded', () => {
       cont.appendChild(det);
     });
   }
-
   buildTree('temaPrincipalTree','temaPrincipalValue');
   buildTree('temaSecundarioTree','temaSecundarioValue');
 
-  // Char counters
+  // contadores de caracteres
   document.getElementById('long_text_mkqr5e1x')
     .addEventListener('input', e => document.getElementById('descCounter').textContent = `${e.target.value.length}/700`);
   document.getElementById('text_mkqrqmfw')
     .addEventListener('input', e => document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`);
 
-  // Dynamic fields
+  // campos dinâmicos
   const fmt   = document.getElementById('short_textossh5v4j'),
         daysL = document.getElementById('daysLabel'),
         maxL  = document.getElementById('maxGuestsLabel'),
@@ -299,10 +297,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ageL  = document.getElementById('ageRangeLabel'),
         showD = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon','Intervenção urbana','Demonstração','Experiência','Visitas/ percursos guiados','Campeonato','Exposição artística','Feira']),
         showM = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
-
   fmt.addEventListener('change', () => {
     daysL.classList.toggle('hidden', !showD.has(fmt.value));
-    maxL.classList.toggle('hidden', !showM.has(fmt.value));
+    maxL .classList.toggle('hidden', !showM.has(fmt.value));
   });
   rs.addEventListener('change', () => {
     ageL.classList.toggle('hidden', rs.value !== 'Sim');
@@ -310,34 +307,36 @@ document.addEventListener('DOMContentLoaded', () => {
   fmt.dispatchEvent(new Event('change'));
   rs.dispatchEvent(new Event('change'));
 
-  // Form submission
+  // envio do formulário
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
 
-    // 1) Create any new guests
+    // 1) criar convidados no monday
     if (guestsToCreate.length) {
       const parts = guestsToCreate.map((g, i) => {
-        const colObj = { text_mkqreer2: g.name };
-        if (g.cargo)   colObj.text_mkqry55n = g.cargo;
-        if (g.empresa) colObj.text_mkqrghw1 = g.empresa;
-        const colJson = JSON.stringify(colObj).replace(/"/g,'\\"');
+        const obj = {
+          text_mkqreer2: g.name,
+          ...(g.cargo   && { text_mkqry55n: g.cargo }),
+          ...(g.empresa && { text_mkqrghw1: g.empresa }),
+        };
+        const colString = JSON.stringify(obj).replace(/"/g,'\\"');
         return `
           m${i}: create_item(
             board_id: ${GUEST_BOARD_ID},
             item_name: "${g.name.replace(/"/g,'\\"')}",
-            column_values: "${colJson}"
+            column_values: "${colString}"
           ) { id }
         `;
       }).join('\n');
       const batch = `mutation {${parts}}`;
-      const res = await mondayMutation(batch);
+      const res   = await mondayMutation(batch);
       guestsToCreate.forEach((g, i) => g.id = res[`m${i}`].id);
       guestsToCreate = [];
     }
 
-    // 2) Gather activity fields
-    const titleRaw = document.getElementById('text_mkqrhjas').value;
-    const titleEsc = titleRaw.replace(/"/g,'\\"');
+    // 2) coletar campos da atividade
+    const title    = document.getElementById('text_mkqrhjas').value;
+    const titleEsc = title.replace(/"/g,'\\"');
     const days     = document.getElementById('short_textb7obn15q').value;
     const maxG     = document.getElementById('text_mkqrjadb').value;
     const duration = document.getElementById('text_mkqrvnnp').value;
@@ -347,13 +346,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const ageRange = document.getElementById('text_mkqrrpq3_range').value;
     const pub      = document.getElementById('text_mkqr6nqa').value;
     const guestIds = selectedGuests.map(g => g.id);
-
     const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
     const [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
 
-    // 3) Build column_values for activity
+    // 3) montar column_values da atividade
     const vals = {
-      text_mkqrhjas:      titleRaw,
+      text_mkqrhjas:      title,
       short_textossh5v4j: fmt.value,
       ...(days && { short_textb7obn15q: days }),
       ...(maxG && { text_mkqrjadb: maxG }),
@@ -373,12 +371,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       })
     };
-
     const colJson = JSON.stringify(vals)
       .replace(/\\/g,'\\\\')
       .replace(/"/g,'\\"')
       .replace(/\n/g,'\\n');
-
     const mutation = `
       mutation {
         create_item(
@@ -388,27 +384,26 @@ document.addEventListener('DOMContentLoaded', () => {
         ) { id }
       }
     `;
-
     try {
       const r = await mondayMutation(mutation);
       alert('Atividade criada! ID: ' + r.create_item.id);
-      document.getElementById('activityForm').reset();
+      e.target.reset();
       selectedGuests = [];
       renderSlots();
       buildTree('temaPrincipalTree','temaPrincipalValue');
       buildTree('temaSecundarioTree','temaSecundarioValue');
       fmt.dispatchEvent(new Event('change'));
-      document.getElementById('text_mkqrrpq3').dispatchEvent(new Event('change'));
+      rs.dispatchEvent(new Event('change'));
     } catch (err) {
       console.error(err);
       alert('Erro ao criar atividade. Veja console.');
     }
   });
 
-  // Initial render
   renderSlots();
 });
 </script>
+
 
 
 </body>
