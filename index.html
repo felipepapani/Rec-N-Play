@@ -266,47 +266,72 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedGuests = [];
   let guestsToCreate = [];
 
-  // generic GraphQL helper
-  async function mondayMutation(query) {
-    const res  = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query })
+  // referências aos labels do formulário
+  const partnership       = document.getElementById('short_mkqwxtt2');
+  const sponsorSelect     = document.getElementById('pat_mkqw6k20');
+  const labelEmpresa      = document.getElementById('labelEmpresa');
+  const labelCNPJ         = document.getElementById('labelCNPJ');
+  const labelCurador      = document.getElementById('labelCurador');
+  const labelRealizador   = document.getElementById('labelRealizador');
+  const labelPatrocinador = document.getElementById('labelPatrocinador');
+  const labelSecretaria   = document.getElementById('labelSecretaria');
+  const labelProponente   = document.getElementById('labelProponente');
+  const labelEmail        = document.getElementById('labelEmail');
+  const labelTelefone     = document.getElementById('labelTelefone');
+
+  function togglePartnerFields() {
+    // primeiro, esconde e desabilita todos
+    [
+      labelEmpresa, labelCNPJ,
+      labelCurador, labelRealizador,
+      labelPatrocinador, labelSecretaria,
+      labelProponente, labelEmail,
+      labelTelefone
+    ].forEach(lbl => {
+      lbl.classList.add('hidden');
+      const ctl = lbl.querySelector('input,select');
+      if (ctl) ctl.disabled = true;
     });
-    const json = await res.json();
-    if (!res.ok || json.errors) {
-      console.error('GraphQL Query:', query);
-      console.error('GraphQL Response:', json);
-      throw json.errors || json;
+
+    // depois, exibe apenas os necessários
+    const tipo = partnership.value;
+    if (tipo === 'Parceiro de conteúdo') {
+      [labelEmpresa, labelCNPJ, labelProponente, labelEmail, labelTelefone]
+        .forEach(lbl => {
+          lbl.classList.remove('hidden');
+          lbl.querySelector('input').disabled = false;
+        });
     }
-    return json.data;
+    else if (tipo === 'Curador') {
+      labelCurador.classList.remove('hidden');
+      labelCurador.querySelector('select').disabled = false;
+    }
+    else if (tipo === 'Realizador') {
+      [labelRealizador, labelProponente, labelEmail, labelTelefone]
+        .forEach(lbl => {
+          lbl.classList.remove('hidden');
+          const ctl = lbl.querySelector('input,select');
+          if (ctl) ctl.disabled = false;
+        });
+    }
+    else if (tipo === 'Patrocinador') {
+      [labelPatrocinador, labelProponente, labelEmail, labelTelefone]
+        .forEach(lbl => {
+          lbl.classList.remove('hidden');
+          const ctl = lbl.querySelector('input,select');
+          if (ctl) ctl.disabled = false;
+        });
+      // exibe secretaria apenas se for Prefeitura do Recife
+      if (sponsorSelect.value === 'Prefeitura do Recife') {
+        labelSecretaria.classList.remove('hidden');
+        labelSecretaria.querySelector('select').disabled = false;
+      }
+    }
   }
 
-  // render guest slots
-  function renderSlots() {
-    const c = document.getElementById('guestSlots');
-    c.innerHTML = '';
-    selectedGuests.forEach((g,i) => {
-      const slot = document.createElement('div');
-      slot.className = 'guest-slot';
-      slot.textContent = g.name;
-      const btn = document.createElement('button');
-      btn.type = 'button'; btn.className = 'remove'; btn.innerHTML = '&times;';
-      btn.onclick = () => { selectedGuests.splice(i,1); renderSlots(); };
-      slot.appendChild(btn);
-      c.appendChild(slot);
-    });
-    if (selectedGuests.length < 6) {
-      const add = document.createElement('button');
-      add.type = 'button'; add.id = 'addGuestBtn'; add.textContent = '+';
-      add.onclick = () => {
-        document.getElementById('newGuestModal').classList.remove('hidden');
-        ['guestNameInput','guestCargoInput','guestEmpresaInput']
-          .forEach(id => document.getElementById(id).value = '');
-      };
-      c.appendChild(add);
-    }
-  }
+  partnership.addEventListener('change', togglePartnerFields);
+  sponsorSelect.addEventListener('change', togglePartnerFields);
+  togglePartnerFields();  // inicializa no carregamento
 
   // guest modal handlers
   document.getElementById('closeGuestModalBtn').onclick = () => {
