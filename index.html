@@ -503,8 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
       guestsToCreate = [];
     }
 
-    // 2) Monta activity
-    // 2) Monta activity
+// 2) Monta activity
 const title      = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
 const fmtValue   = fmt.value;
 const days       = document.getElementById('short_textb7obn15q').value;
@@ -515,9 +514,11 @@ const extras     = document.getElementById('text_mkqrqmfw').value.replace(/"/g,'
 const restr      = document.getElementById('text_mkqrrpq3').value;
 const ageRange   = document.getElementById('text_mkqrrpq3_range').value.replace(/"/g,'\\"');
 const pub        = document.getElementById('text_mkqr6nqa').value;
+
 // tema e subtema
 const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
 const [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
+
 // parceria e campos associados
 const partnerType  = partnership.value;
 let   partnerValue;
@@ -527,12 +528,14 @@ switch (partnerType) {
   case 'Patrocinador': partnerValue = document.getElementById('pat_mkqw6k20').value; break;
   default:             partnerValue = document.getElementById('text_mkqw6k20').value; break;
 }
+
 // outros campos de parceria
 const cnpj       = document.getElementById('text_mkqw9854').value;
 const secretaria = document.getElementById('short_mkqxee4h').value;
 const proponente = document.getElementById('text_mkqxrmax').value;
 const email      = document.getElementById('email_mkqw7x9b').value;
 const telefone   = document.getElementById('tel_mkqxwjzj').value;
+
 // convidados (já criados no board de convidados)
 const guestIds   = selectedGuests
   .filter(g => g.id)
@@ -565,30 +568,32 @@ const vals = {
   })
 };
 
-    const colJson = JSON.stringify(vals)
-      .replace(/\\/g,'\\\\')
-      .replace(/"/g,'\\"')
-      .replace(/\n/g,'\\n');
-    const mutation = `
-      mutation {
-        create_item(
-          board_id: ${BOARD_ID},
-          item_name: "${vals.text_mkqrhjas.replace(/"/g,'\\"')}",
-          column_values: "${colJson}"
-        ) { id }
-      }
-    `;
-    try {
-      const resp = await mondayMutation(mutation);
-      alert('Atividade criada! ID: ' + resp.create_item.id);
-      document.getElementById('activityForm').reset();
-      selectedGuests = [];
-      renderSlots();
-    } catch(err) {
-      console.error(err);
-      alert('Erro ao criar atividade. Veja console.');
-    }
-  });
+const colJson = JSON.stringify(vals)
+  .replace(/\\/g,'\\\\')
+  .replace(/"/g,'\\"')
+  .replace(/\n/g,'\\n');
+
+const mutation = `
+  mutation {
+    create_item(
+      board_id: ${BOARD_ID},
+      item_name: "${vals.text_mkqrhjas.replace(/"/g,'\\"')}",
+      column_values: "${colJson}"
+    ) { id }
+  }
+`;
+
+try {
+  const resp = await mondayMutation(mutation);
+  alert('Atividade criada! ID: ' + resp.create_item.id);
+  document.getElementById('activityForm').reset();
+  selectedGuests = [];
+  renderSlots();
+} catch(err) {
+  console.error(err);
+  alert('Erro ao criar atividade. Veja console.');
+}
+
 
   // inicia slots
   renderSlots();
