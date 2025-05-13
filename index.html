@@ -266,111 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedGuests = [];
   let guestsToCreate = [];
 
-  // → MOSTRAR / ESCONDER CAMPOS DE PARCERIA
-  const partnership       = document.getElementById('short_mkqwxtt2');
-  const sponsorSelect     = document.getElementById('pat_mkqw6k20');
-  const labelEmpresa      = document.getElementById('labelEmpresa');
-  const labelCNPJ         = document.getElementById('labelCNPJ');
-  const labelCurador      = document.getElementById('labelCurador');
-  const labelRealizador   = document.getElementById('labelRealizador');
-  const labelPatrocinador = document.getElementById('labelPatrocinador');
-  const labelSecretaria   = document.getElementById('labelSecretaria');
-  const labelProponente   = document.getElementById('labelProponente');
-  const labelEmail        = document.getElementById('labelEmail');
-  const labelTelefone     = document.getElementById('labelTelefone');
-
-  function togglePartnerFields() {
-    [ labelEmpresa, labelCNPJ, labelCurador, labelRealizador,
-      labelPatrocinador, labelSecretaria,
-      labelProponente, labelEmail, labelTelefone
-    ].forEach(l => {
-      l.classList.add('hidden');
-      const ctl = l.querySelector('input,select');
-      if (ctl) ctl.disabled = true;
-    });
-
-    switch (partnership.value) {
-      case 'Parceiro de conteúdo':
-        [ labelEmpresa, labelCNPJ, labelProponente, labelEmail, labelTelefone ]
-          .forEach(l => {
-            l.classList.remove('hidden');
-            l.querySelector('input').disabled = false;
-          });
-        break;
-      case 'Curador':
-        labelCurador.classList.remove('hidden');
-        labelCurador.querySelector('select').disabled = false;
-        break;
-      case 'Realizador':
-        [ labelRealizador, labelProponente, labelEmail, labelTelefone ]
-          .forEach(l => {
-            l.classList.remove('hidden');
-            l.querySelector('input,select').disabled = false;
-          });
-        break;
-      case 'Patrocinador':
-        [ labelPatrocinador, labelProponente, labelEmail, labelTelefone ]
-          .forEach(l => {
-            l.classList.remove('hidden');
-            l.querySelector('input,select').disabled = false;
-          });
-        if (sponsorSelect.value === 'Prefeitura do Recife') {
-          labelSecretaria.classList.remove('hidden');
-          labelSecretaria.querySelector('select').disabled = false;
-        }
-        break;
-    }
-  }
-  partnership.addEventListener('change', togglePartnerFields);
-  sponsorSelect.addEventListener('change', togglePartnerFields);
-  togglePartnerFields();
-
-  // → GUEST SLOTS
-  function renderSlots() {
-    const container = document.getElementById('guestSlots');
-    container.innerHTML = '';
-    selectedGuests.forEach((g,i) => {
-      const slot = document.createElement('div');
-      slot.className = 'guest-slot';
-      slot.textContent = g.name;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'remove';
-      btn.innerHTML = '&times;';
-      btn.onclick = () => { selectedGuests.splice(i,1); renderSlots(); };
-      slot.appendChild(btn);
-      container.appendChild(slot);
-    });
-    if (selectedGuests.length < 6) {
-      const add = document.createElement('button');
-      add.type = 'button';
-      add.id = 'addGuestBtn';
-      add.textContent = '+';
-      add.onclick = () => {
-        document.getElementById('newGuestModal').classList.remove('hidden');
-        ['guestNameInput','guestCargoInput','guestEmpresaInput']
-          .forEach(id => document.getElementById(id).value = '');
-      };
-      container.appendChild(add);
-    }
-  }
-
-  document.getElementById('closeGuestModalBtn').onclick = () => {
-    document.getElementById('newGuestModal').classList.add('hidden');
-  };
-  document.getElementById('saveGuestBtn').onclick = () => {
-    const name    = document.getElementById('guestNameInput').value.trim();
-    const cargo   = document.getElementById('guestCargoInput').value.trim();
-    const empresa = document.getElementById('guestEmpresaInput').value.trim();
-    if (!name) return alert('Informe ao menos o nome do convidado.');
-    const guest = { id: null, name, cargo, empresa };
-    selectedGuests.push(guest);
-    guestsToCreate.push(guest);
-    document.getElementById('newGuestModal').classList.add('hidden');
-    renderSlots();
-  };
-
-  // → GraphQL helper
+  // — GraphQL genérico —
   async function mondayMutation(query) {
     const res  = await fetch(API_URL, {
       method: 'POST',
@@ -386,7 +282,56 @@ document.addEventListener('DOMContentLoaded', () => {
     return json.data;
   }
 
-  // → TEMA/Subtema trees
+  // — Render slots de convidados e botão “+” —
+  function renderSlots() {
+    const c = document.getElementById('guestSlots');
+    c.innerHTML = '';
+    selectedGuests.forEach((g,i) => {
+      const slot = document.createElement('div');
+      slot.className = 'guest-slot';
+      slot.textContent = g.name;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'remove';
+      btn.innerHTML = '&times;';
+      btn.onclick = () => {
+        selectedGuests.splice(i,1);
+        renderSlots();
+      };
+      slot.appendChild(btn);
+      c.appendChild(slot);
+    });
+    if (selectedGuests.length < 6) {
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.id = 'addGuestBtn';
+      add.textContent = '+';
+      add.onclick = () => {
+        document.getElementById('newGuestModal').classList.remove('hidden');
+        ['guestNameInput','guestCargoInput','guestEmpresaInput']
+          .forEach(id => document.getElementById(id).value = '');
+      };
+      c.appendChild(add);
+    }
+  }
+
+  // — Modal de novo convidado —
+  document.getElementById('closeGuestModalBtn').onclick = () => {
+    document.getElementById('newGuestModal').classList.add('hidden');
+  };
+  document.getElementById('saveGuestBtn').onclick = () => {
+    const name    = document.getElementById('guestNameInput').value.trim();
+    const cargo   = document.getElementById('guestCargoInput').value.trim();
+    const empresa = document.getElementById('guestEmpresaInput').value.trim();
+    if (!name) return alert('Informe ao menos o nome do convidado.');
+    const guest = { id: null, name, cargo, empresa };
+    selectedGuests.push(guest);
+    guestsToCreate.push(guest);
+    document.getElementById('newGuestModal').classList.add('hidden');
+    renderSlots();
+  };
+
+  // — Tema → Subtema —
   const subtemasPorTema = {
     "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
     "Comunicação": ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/Industrial","Podcast"],
@@ -432,17 +377,23 @@ document.addEventListener('DOMContentLoaded', () => {
   buildTree('temaPrincipalTree','temaPrincipalValue');
   buildTree('temaSecundarioTree','temaSecundarioValue');
 
-  // → Dinâmicos Formato / Faixa etária
+  // — Contadores de caracteres —
+  document.getElementById('long_text_mkqr5e1x')
+    .addEventListener('input', e => document.getElementById('descCounter').textContent = `${e.target.value.length}/700`);
+  document.getElementById('text_mkqrqmfw')
+    .addEventListener('input', e => document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`);
+
+  // — Campos dinâmicos Formato & Faixa etária —
   const fmt   = document.getElementById('short_textossh5v4j'),
         daysL = document.getElementById('daysLabel'),
         maxL  = document.getElementById('maxGuestsLabel'),
         rs    = document.getElementById('text_mkqrrpq3'),
         ageL  = document.getElementById('ageRangeLabel'),
-        showDays = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon']),
+        showDays = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon','Intervenção urbana','Demonstração','Experiência','Visitas/ percursos guiados','Campeonato','Exposição artística','Feira']),
         showMax  = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
   fmt.addEventListener('change', () => {
     daysL.classList.toggle('hidden', !showDays.has(fmt.value));
-    maxL.classList.toggle('hidden', !showMax.has(fmt.value));
+    maxL .classList.toggle('hidden', !showMax.has(fmt.value));
   });
   rs.addEventListener('change', () => {
     ageL.classList.toggle('hidden', rs.value !== 'Sim');
@@ -450,11 +401,58 @@ document.addEventListener('DOMContentLoaded', () => {
   fmt.dispatchEvent(new Event('change'));
   rs.dispatchEvent(new Event('change'));
 
-  // → Submissão
+  // — Toggle Parceria / Secretaria —
+  const partnership       = document.getElementById('short_mkqwxtt2');
+  const sponsorSelect     = document.getElementById('pat_mkqw6k20');
+  const labels = {
+    empresa:      document.getElementById('labelEmpresa'),
+    cnpj:         document.getElementById('labelCNPJ'),
+    curador:      document.getElementById('labelCurador'),
+    realizador:   document.getElementById('labelRealizador'),
+    patrocinador: document.getElementById('labelPatrocinador'),
+    secretaria:   document.getElementById('labelSecretaria'),
+    proponente:   document.getElementById('labelProponente'),
+    email:        document.getElementById('labelEmail'),
+    telefone:     document.getElementById('labelTelefone')
+  };
+  function togglePartnerFields() {
+    // esconde e desabilita todos
+    Object.values(labels).forEach(l => {
+      l.classList.add('hidden');
+      const ctl = l.querySelector('input,select');
+      if (ctl) ctl.disabled = true;
+    });
+    // define quais mostrar
+    const p = partnership.value;
+    const show = [];
+    if (p === 'Parceiro de conteúdo') {
+      show.push('empresa','cnpj','proponente','email','telefone');
+    } else if (p === 'Curador') {
+      show.push('curador');
+    } else if (p === 'Realizador') {
+      show.push('realizador','proponente','email','telefone');
+    } else if (p === 'Patrocinador') {
+      show.push('patrocinador','proponente','email','telefone');
+      if (sponsorSelect.value === 'Prefeitura do Recife') {
+        show.push('secretaria');
+      }
+    }
+    show.forEach(key => {
+      const l = labels[key];
+      l.classList.remove('hidden');
+      const ctl = l.querySelector('input,select');
+      if (ctl) ctl.disabled = false;
+    });
+  }
+  partnership.addEventListener('change', togglePartnerFields);
+  sponsorSelect.addEventListener('change', togglePartnerFields);
+  togglePartnerFields();
+
+  // — Submissão do formulário —
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
 
-    // criar convidados no Monday
+    // 1) Cria convidados primeiro
     if (guestsToCreate.length) {
       await Promise.all(guestsToCreate.map(async g => {
         const cols = { text_mkqreer2: g.name };
@@ -463,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const esc = JSON.stringify(cols).replace(/"/g,'\\"');
         const q = `
           mutation {
-            create_item(board_id:${GUEST_BOARD_ID}, item_name:"${g.name.replace(/"/g,'\\"')}", column_values:"${esc}") { id }
+            create_item(board_id: ${GUEST_BOARD_ID}, item_name: "${g.name.replace(/"/g,'\\"')}", column_values: "${esc}") { id }
           }
         `;
         const res = await mondayMutation(q);
@@ -472,11 +470,33 @@ document.addEventListener('DOMContentLoaded', () => {
       guestsToCreate = [];
     }
 
-    // montar column_values
-    const rsVal = document.getElementById('text_mkqrrpq3').value;
-    const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
-    const [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
+    // 2) Monta as colunas de Parceria dinamicamente
+    const partnerType = partnership.value;
+    const partnerCols = {};
+    if (partnerType === 'Parceiro de conteúdo') {
+      partnerCols['text_mkqw6k20'] = document.getElementById('text_mkqw6k20').value;
+      partnerCols['text_mkqw9854'] = document.getElementById('text_mkqw9854').value;
+      partnerCols['text_mkqxrmax'] = document.getElementById('text_mkqxrmax').value;
+      partnerCols['text_mkqw7x9b'] = document.getElementById('email_mkqw7x9b').value;
+      partnerCols['text_mkqxwjzj'] = document.getElementById('tel_mkqxwjzj').value;
+    } else if (partnerType === 'Curador') {
+      partnerCols['curador_mkqw6k20'] = document.getElementById('curador_mkqw6k20').value;
+    } else if (partnerType === 'Realizador') {
+      partnerCols['realizador_mkqw6k20'] = document.getElementById('realizador_mkqw6k20').value;
+      partnerCols['text_mkqxrmax']       = document.getElementById('text_mkqxrmax').value;
+      partnerCols['text_mkqw7x9b']       = document.getElementById('email_mkqw7x9b').value;
+      partnerCols['text_mkqxwjzj']       = document.getElementById('tel_mkqxwjzj').value;
+    } else if (partnerType === 'Patrocinador') {
+      partnerCols['pat_mkqw6k20']      = document.getElementById('pat_mkqw6k20').value;
+      partnerCols['text_mkqxrmax']     = document.getElementById('text_mkqxrmax').value;
+      partnerCols['text_mkqw7x9b']     = document.getElementById('email_mkqw7x9b').value;
+      partnerCols['text_mkqxwjzj']     = document.getElementById('tel_mkqxwjzj').value;
+      if (sponsorSelect.value === 'Prefeitura do Recife') {
+        partnerCols['short_mkqxee4h'] = document.getElementById('short_mkqxee4h').value;
+      }
+    }
 
+    // 3) Monta o objeto vals com espalhamento
     const vals = {
       text_mkqrhjas:      document.getElementById('text_mkqrhjas').value,
       short_textossh5v4j: fmt.value,
@@ -485,32 +505,20 @@ document.addEventListener('DOMContentLoaded', () => {
       text_mkqrvnnp:      document.getElementById('text_mkqrvnnp').value,
       long_text_mkqr5e1x: document.getElementById('long_text_mkqr5e1x').value,
       text_mkqrqmfw:      document.getElementById('text_mkqrqmfw').value,
-      text_mkqrrpq3:      rsVal === 'Sim'
+      text_mkqrrpq3:      rs.value === 'Sim'
                             ? document.getElementById('text_mkqrrpq3_range').value
-                            : rsVal,
-      text_mkqrwawz:      temaP || '',
-      text_mkqrm18v:      subP  || '',
-      text_mkqrth67:      temaS || '',
-      text_mkqrfjz3:      subS  || '',
+                            : rs.value,
+      text_mkqrwawz:      document.getElementById('temaPrincipalValue').value.split(' → ')[0] || '',
+      text_mkqrm18v:      document.getElementById('temaPrincipalValue').value.split(' → ')[1] || '',
+      text_mkqrth67:      document.getElementById('temaSecundarioValue').value.split(' → ')[0] || '',
+      text_mkqrfjz3:      document.getElementById('temaSecundarioValue').value.split(' → ')[1] || '',
       text_mkqr6nqa:      document.getElementById('text_mkqr6nqa').value,
-      color_mkqr22e3:     { label:'Caixa de Entrada' },
-      text_mkqwxtt2:      partnership.value,
-      text_mkqw6k20:      (() => {
-        switch(partnership.value) {
-          case 'Curador':       return document.getElementById('curador_mkqw6k20').value;
-          case 'Realizador':    return document.getElementById('realizador_mkqw6k20').value;
-          case 'Patrocinador':  return document.getElementById('pat_mkqw6k20').value;
-          default:              return document.getElementById('text_mkqw6k20').value;
-        }
-      })(),
-      text_mkqw9854:      document.getElementById('text_mkqw9854').value,
-      text_mkqxee4h:      document.getElementById('short_mkqxee4h').value,
-      text_mkqxrmax:      document.getElementById('text_mkqxrmax').value,
-      text_mkqw7x9b:      document.getElementById('email_mkqw7x9b').value,
-      text_mkqxwjzj:      document.getElementById('tel_mkqxwjzj').value,
-      ...(selectedGuests.filter(g=>g.id).length && {
+      color_mkqr22e3:     { label: 'Caixa de Entrada' },
+      text_mkqwxtt2:      partnerType,
+      ...partnerCols,
+      ...(selectedGuests.some(g=>g.id) && {
         board_relation_mkqr6b1t: {
-          linkedPulseIds: selectedGuests.filter(g=>g.id).map(g=>({linkedPulseId:g.id}))
+          linkedPulseIds: selectedGuests.filter(g=>g.id).map(g=>({ linkedPulseId: g.id }))
         }
       })
     };
@@ -519,6 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/\\/g,'\\\\')
       .replace(/"/g,'\\"')
       .replace(/\n/g,'\\n');
+
     const mutation = `
       mutation {
         create_item(
@@ -528,22 +537,28 @@ document.addEventListener('DOMContentLoaded', () => {
         ) { id }
       }
     `;
+
     try {
       const resp = await mondayMutation(mutation);
       alert('Atividade criada! ID: ' + resp.create_item.id);
       document.getElementById('activityForm').reset();
       selectedGuests = [];
       renderSlots();
-    } catch (err) {
+      buildTree('temaPrincipalTree','temaPrincipalValue');
+      buildTree('temaSecundarioTree','temaSecundarioValue');
+      fmt.dispatchEvent(new Event('change'));
+      rs.dispatchEvent(new Event('change'));
+    } catch(err) {
       console.error(err);
       alert('Erro ao criar atividade. Veja console.');
     }
   });
 
-  // inicializa slots e trees
+  // — Inicializa —
   renderSlots();
 });
 </script>
+
 
 </body>
 </html>
