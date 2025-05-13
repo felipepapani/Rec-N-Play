@@ -276,22 +276,27 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedGuests = [];
   let guestsToCreate = [];
 
-  // referências aos campos de parceria
+  // referências aos campos de parceria e secretaria
   const partnership       = document.getElementById('short_mkqwxtt2');
+  const sponsorSelect     = document.getElementById('pat_mkqw6k20');
   const labelEmpresa      = document.getElementById('text_mkqw6k20').closest('label');
   const labelCNPJ         = document.getElementById('text_mkqw9854').closest('label');
   const labelCurador      = document.getElementById('curador_mkqw6k20').closest('label');
   const labelRealizador   = document.getElementById('realizador_mkqw6k20').closest('label');
-  const labelPatrocinador = document.getElementById('pat_mkqw6k20').closest('label');
+  const labelPatrocinador = sponsorSelect.closest('label');
+  const labelSecretaria   = document.getElementById('short_mkqxee4h').closest('label');
   const labelProponente   = document.getElementById('text_mkqxrmax').closest('label');
   const labelEmail        = document.getElementById('email_mkqw7x9b').closest('label');
   const labelTelefone     = document.getElementById('tel_mkqxwjzj').closest('label');
 
   function togglePartnerFields() {
     // esconde todos
-    [labelEmpresa,labelCNPJ,labelCurador,labelRealizador,labelPatrocinador,labelProponente,labelEmail,labelTelefone]
-      .forEach(el => el.classList.add('hidden'));
-    // mostra só o necessário
+    [
+      labelEmpresa, labelCNPJ, labelCurador,
+      labelRealizador, labelPatrocinador, labelSecretaria,
+      labelProponente, labelEmail, labelTelefone
+    ].forEach(el => el.classList.add('hidden'));
+
     switch (partnership.value) {
       case 'Parceiro de conteúdo':
         labelEmpresa.classList.remove('hidden');
@@ -314,10 +319,15 @@ document.addEventListener('DOMContentLoaded', () => {
         labelProponente.classList.remove('hidden');
         labelEmail.classList.remove('hidden');
         labelTelefone.classList.remove('hidden');
+        // só mostra secretaria se for exatamente essa opção
+        if (sponsorSelect.value === 'Prefeitura do Recife') {
+          labelSecretaria.classList.remove('hidden');
+        }
         break;
     }
   }
   partnership.addEventListener('change', togglePartnerFields);
+  sponsorSelect.addEventListener('change', togglePartnerFields);
   togglePartnerFields();
 
   // GraphQL genérico
@@ -381,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSlots();
   };
 
-  // objeto de subtemas
+  // subtemas por tema
   const subtemasPorTema = {
     "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
     "Comunicação": ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/Industrial","Podcast"],
