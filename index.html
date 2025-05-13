@@ -23,7 +23,7 @@
   </style>
 </head>
 <body>
-  <h1>Nova atividade</h1>
+  <h1>Noaa atividade</h1>
   <form id="activityForm">
     <label>
       Qual tipo de parceria:
@@ -504,29 +504,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 // 2) Monta activity
-const title      = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
+const fmt        = document.getElementById('short_textossh5v4j');
+const title      = document.getElementById('text_mkqrhjas').value.replace(/"/g, '\\"');
 const fmtValue   = fmt.value;
 const days       = document.getElementById('short_textb7obn15q').value;
 const maxG       = document.getElementById('text_mkqrjadb').value;
-const duration   = document.getElementById('text_mkqrvnnp').value.replace(/"/g,'\\"');
-const desc       = document.getElementById('long_text_mkqr5e1x').value.replace(/"/g,'\\"');
-const extras     = document.getElementById('text_mkqrqmfw').value.replace(/"/g,'\\"');
+const duration   = document.getElementById('text_mkqrvnnp').value.replace(/"/g, '\\"');
+const desc       = document.getElementById('long_text_mkqr5e1x').value.replace(/"/g, '\\"');
+const extras     = document.getElementById('text_mkqrqmfw').value.replace(/"/g, '\\"');
 const restr      = document.getElementById('text_mkqrrpq3').value;
-const ageRange   = document.getElementById('text_mkqrrpq3_range').value.replace(/"/g,'\\"');
+const ageRange   = document.getElementById('text_mkqrrpq3_range').value.replace(/"/g, '\\"');
 const pub        = document.getElementById('text_mkqr6nqa').value;
 
 // tema e subtema
-const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
-const [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
+const [temaP, subP = ''] = document
+  .getElementById('temaPrincipalValue')
+  .value.split(' → ');
+const [temaS, subS = ''] = document
+  .getElementById('temaSecundarioValue')
+  .value.split(' → ');
 
 // parceria e campos associados
-const partnerType  = partnership.value;
-let   partnerValue;
+const partnerType = partnership.value;
+let partnerValue;
 switch (partnerType) {
-  case 'Curador':      partnerValue = document.getElementById('curador_mkqw6k20').value; break;
-  case 'Realizador':   partnerValue = document.getElementById('realizador_mkqw6k20').value; break;
-  case 'Patrocinador': partnerValue = document.getElementById('pat_mkqw6k20').value; break;
-  default:             partnerValue = document.getElementById('text_mkqw6k20').value; break;
+  case 'Curador':
+    partnerValue = document.getElementById('curador_mkqw6k20').value;
+    break;
+  case 'Realizador':
+    partnerValue = document.getElementById('realizador_mkqw6k20').value;
+    break;
+  case 'Patrocinador':
+    partnerValue = document.getElementById('pat_mkqw6k20').value;
+    break;
+  default:
+    partnerValue = document.getElementById('text_mkqw6k20').value;
 }
 
 // outros campos de parceria
@@ -537,15 +549,15 @@ const email      = document.getElementById('email_mkqw7x9b').value;
 const telefone   = document.getElementById('tel_mkqxwjzj').value;
 
 // convidados (já criados no board de convidados)
-const guestIds   = selectedGuests
+const guestIds = selectedGuests
   .filter(g => g.id)
   .map(g => ({ linkedPulseId: parseInt(g.id, 10) }));
 
 const vals = {
   text_mkqrhjas:      title,
   short_textossh5v4j: fmtValue,
-  ...(days && {       short_textb7obn15q: days }),
-  ...(maxG && {       text_mkqrjadb: maxG }),
+  ...(days && { short_textb7obn15q: days }),
+  ...(maxG && { text_mkqrjadb: maxG }),
   text_mkqrvnnp:      duration,
   long_text_mkqr5e1x: desc,
   text_mkqrqmfw:      extras,
@@ -569,15 +581,15 @@ const vals = {
 };
 
 const colJson = JSON.stringify(vals)
-  .replace(/\\/g,'\\\\')
-  .replace(/"/g,'\\"')
-  .replace(/\n/g,'\\n');
+  .replace(/\\/g, '\\\\')
+  .replace(/"/g, '\\"')
+  .replace(/\n/g, '\\n');
 
 const mutation = `
   mutation {
     create_item(
       board_id: ${BOARD_ID},
-      item_name: "${vals.text_mkqrhjas.replace(/"/g,'\\"')}",
+      item_name: "${vals.text_mkqrhjas.replace(/"/g, '\\"')}",
       column_values: "${colJson}"
     ) { id }
   }
@@ -589,7 +601,7 @@ try {
   document.getElementById('activityForm').reset();
   selectedGuests = [];
   renderSlots();
-} catch(err) {
+} catch (err) {
   console.error(err);
   alert('Erro ao criar atividade. Veja console.');
 }
