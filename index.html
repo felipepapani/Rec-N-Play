@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderSlots() {
     const c = document.getElementById('guestSlots');
     c.innerHTML = '';
-    selectedGuests.forEach((g, i) => {
+    selectedGuests.forEach((g,i) => {
       const slot = document.createElement('div');
       slot.className = 'guest-slot';
       slot.textContent = g.name;
@@ -317,8 +317,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const cargo   = document.getElementById('guestCargoInput').value.trim();
     const empresa = document.getElementById('guestEmpresaInput').value.trim();
     if (!name) return alert('Informe ao menos o nome do convidado.');
-    selectedGuests.push({ id: null, name, cargo, empresa });
-    guestsToCreate.push({ id: null, name, cargo, empresa });
+    const guest = { id: null, name, cargo, empresa };
+    selectedGuests.push(guest);
+    guestsToCreate.push(guest);
     document.getElementById('newGuestModal').classList.add('hidden');
     renderSlots();
   };
@@ -347,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cont = document.getElementById(containerId),
           hid  = document.getElementById(hiddenInputId);
     cont.innerHTML = '';
-    Object.entries(subtemasPorTema).forEach(([tema, subs]) => {
+    Object.entries(subtemasPorTema).forEach(([tema,subs]) => {
       const det = document.createElement('details'),
             sum = document.createElement('summary');
       sum.textContent = tema;
@@ -358,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
         div.textContent = sub;
         div.onclick = () => {
           hid.value = `${tema} → ${sub}`;
-          cont.querySelectorAll('.subtema-item').forEach(el => el.style.fontWeight = '');
+          cont.querySelectorAll('.subtema-item').forEach(el=>el.style.fontWeight='');
           div.style.fontWeight = 'bold';
         };
         det.appendChild(div);
@@ -375,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('text_mkqrqmfw')
     .addEventListener('input', e => document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`);
 
-  // — Dinâmicos: Formato & Faixa etária —
+  // — Formato & Faixa etária dinâmicos —
   const fmt    = document.getElementById('short_textossh5v4j'),
         daysL  = document.getElementById('daysLabel'),
         maxL   = document.getElementById('maxGuestsLabel'),
@@ -394,9 +395,9 @@ document.addEventListener('DOMContentLoaded', () => {
   rs.dispatchEvent(new Event('change'));
 
   // — Parceria / Secretaria —
-  const partnership       = document.getElementById('short_mkqwxtt2'),
-        sponsorSelect     = document.getElementById('pat_mkqw6k20'),
-        labels            = {
+  const partnership   = document.getElementById('short_mkqwxtt2'),
+        sponsorSelect = document.getElementById('pat_mkqw6k20'),
+        labels        = {
           empresa:      document.getElementById('labelEmpresa'),
           cnpj:         document.getElementById('labelCNPJ'),
           curador:      document.getElementById('labelCurador'),
@@ -442,11 +443,11 @@ document.addEventListener('DOMContentLoaded', () => {
   sponsorSelect.addEventListener('change', togglePartnerFields);
   togglePartnerFields();
 
-  // — Submissão do formulário —
+  // — Submissão —
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
 
-    // 1) Criar convidados
+    // 1) Cria convidados
     if (guestsToCreate.length) {
       await Promise.all(guestsToCreate.map(async g => {
         const cols = { text_mkqreer2: g.name };
@@ -468,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
       guestsToCreate = [];
     }
 
-    // 2) Monta activity
+    // 2) Monta atividade
     const title      = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
     const fmtValue   = fmt.value;
     const days       = document.getElementById('short_textb7obn15q').value;
@@ -481,8 +482,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pub        = document.getElementById('text_mkqr6nqa').value;
     const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
     const [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
-    const partnerType  = partnership.value;
-    let partnerValue;
+    const partnerType      = partnership.value;
+    let   partnerValue;
     switch (partnerType) {
       case 'Curador':      partnerValue = document.getElementById('curador_mkqw6k20').value; break;
       case 'Realizador':   partnerValue = document.getElementById('realizador_mkqw6k20').value; break;
@@ -496,7 +497,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const telefone   = document.getElementById('tel_mkqxwjzj').value;
     const guestIds   = selectedGuests
       .filter(g => g.id)
-      .map(g => ({ linkedPulseId: parseInt(g.id, 10) }));
+      .map(g => ({ linkedPulseId: parseInt(g.id,10) }));
+
     const vals = {
       text_mkqrhjas:      title,
       short_textossh5v4j: fmtValue,
@@ -505,13 +507,13 @@ document.addEventListener('DOMContentLoaded', () => {
       text_mkqrvnnp:      duration,
       long_text_mkqr5e1x: desc,
       text_mkqrqmfw:      extras,
-      text_mkqrrpq3:      restr === 'Sim' ? ageRange : restr,
+      text_mkqrrpq3:      restr==='Sim'? ageRange : restr,
       text_mkqrwawz:      temaP,
       text_mkqrm18v:      subP,
       text_mkqrth67:      temaS,
       text_mkqrfjz3:      subS,
       text_mkqr6nqa:      pub,
-      color_mkqr22e3:     { label: 'Caixa de Entrada' },
+      color_mkqr22e3:     { label:'Caixa de Entrada' },
       text_mkqwxtt2:      partnerType,
       text_mkqw6k20:      partnerValue,
       text_mkqw9854:      cnpj,
@@ -523,15 +525,17 @@ document.addEventListener('DOMContentLoaded', () => {
         board_relation_mkqr6b1t: { linkedPulseIds: guestIds }
       })
     };
+
     const colJson = JSON.stringify(vals)
       .replace(/\\/g,'\\\\')
       .replace(/"/g,'\\"')
       .replace(/\n/g,'\\n');
+
     const mutation = `
       mutation {
         create_item(
           board_id: ${BOARD_ID},
-          item_name: "${vals.text_mkqrhjas.replace(/"/g,'\\"')}",
+          item_name: "${title}",
           column_values: "${colJson}"
         ) { id }
       }
@@ -542,16 +546,20 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('activityForm').reset();
       selectedGuests = [];
       renderSlots();
+      buildTree('temaPrincipalTree','temaPrincipalValue');
+      buildTree('temaSecundarioTree','temaSecundarioValue');
+      fmt.dispatchEvent(new Event('change'));
+      rs.dispatchEvent(new Event('change'));
     } catch (err) {
       console.error(err);
       alert('Erro ao criar atividade. Veja console.');
     }
   });
 
-  // Inicializa slots
   renderSlots();
 });
 </script>
+
 
 </body>
 </html>
