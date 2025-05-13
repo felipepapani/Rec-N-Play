@@ -23,7 +23,7 @@
   </style>
 </head>
 <body>
-  <h1>Nova atividade</h1>
+  <h1>Noaa atividade</h1>
   <form id="activityForm">
     <label>
       Qual tipo de parceria:
@@ -504,46 +504,66 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 2) Monta activity
-    const rsVal = document.getElementById('text_mkqrrpq3').value;
-    const vals = {
-      text_mkqrhjas:      document.getElementById('text_mkqrhjas').value,
-      short_textossh5v4j: fmt.value,
-      ...(document.getElementById('short_textb7obn15q').value && { short_textb7obn15q: document.getElementById('short_textb7obn15q').value }),
-      ...(document.getElementById('text_mkqrjadb').value && { text_mkqrjadb: document.getElementById('text_mkqrjadb').value }),
-      text_mkqrvnnp:      document.getElementById('text_mkqrvnnp').value,
-      long_text_mkqr5e1x: document.getElementById('long_text_mkqr5e1x').value,
-      text_mkqrqmfw:      document.getElementById('text_mkqrqmfw').value,
-      text_mkqrrpq3:      rsVal === 'Sim'
-                            ? document.getElementById('text_mkqrrpq3_range').value
-                            : rsVal,
-      text_mkqrwawz:      document.getElementById('temaPrincipalValue').value.split(' → ')[0] || '',
-      text_mkqrm18v:      document.getElementById('temaPrincipalValue').value.split(' → ')[1] || '',
-      text_mkqrth67:      document.getElementById('temaSecundarioValue').value.split(' → ')[0] || '',
-      text_mkqrfjz3:      document.getElementById('temaSecundarioValue').value.split(' → ')[1] || '',
-      text_mkqr6nqa:      document.getElementById('text_mkqr6nqa').value,
-      color_mkqr22e3:     { label:'Caixa de Entrada' },
-      text_mkqwxtt2:      partnership.value,
-      text_mkqw6k20:      (() => {
-        switch (partnership.value) {
-          case 'Curador':       return document.getElementById('curador_mkqw6k20').value;
-          case 'Realizador':    return document.getElementById('realizador_mkqw6k20').value;
-          case 'Patrocinador':  return document.getElementById('pat_mkqw6k20').value;
-          default:              return document.getElementById('text_mkqw6k20').value;
-        }
-      })(),
-      text_mkqw9854:      document.getElementById('text_mkqw9854').value,
-      text_mkqxee4h:      document.getElementById('short_mkqxee4h').value,
-      text_mkqxrmax:      document.getElementById('text_mkqxrmax').value,
-      text_mkqw7x9b:      document.getElementById('email_mkqw7x9b').value,
-      text_mkqxwjzj:      document.getElementById('tel_mkqxwjzj').value,
-      ...(selectedGuests.filter(g => g.id).length && {
-        board_relation_mkqr6b1t: {
-          linkedPulseIds: selectedGuests
-            .filter(g => g.id)
-            .map(g => ({ linkedPulseId: g.id }))
-        }
-      })
-    };
+    // 2) Monta activity
+const title      = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
+const fmtValue   = fmt.value;
+const days       = document.getElementById('short_textb7obn15q').value;
+const maxG       = document.getElementById('text_mkqrjadb').value;
+const duration   = document.getElementById('text_mkqrvnnp').value.replace(/"/g,'\\"');
+const desc       = document.getElementById('long_text_mkqr5e1x').value.replace(/"/g,'\\"');
+const extras     = document.getElementById('text_mkqrqmfw').value.replace(/"/g,'\\"');
+const restr      = document.getElementById('text_mkqrrpq3').value;
+const ageRange   = document.getElementById('text_mkqrrpq3_range').value.replace(/"/g,'\\"');
+const pub        = document.getElementById('text_mkqr6nqa').value;
+// tema e subtema
+const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
+const [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
+// parceria e campos associados
+const partnerType  = partnership.value;
+let   partnerValue;
+switch (partnerType) {
+  case 'Curador':      partnerValue = document.getElementById('curador_mkqw6k20').value; break;
+  case 'Realizador':   partnerValue = document.getElementById('realizador_mkqw6k20').value; break;
+  case 'Patrocinador': partnerValue = document.getElementById('pat_mkqw6k20').value; break;
+  default:             partnerValue = document.getElementById('text_mkqw6k20').value; break;
+}
+// outros campos de parceria
+const cnpj       = document.getElementById('text_mkqw9854').value;
+const secretaria = document.getElementById('short_mkqxee4h').value;
+const proponente = document.getElementById('text_mkqxrmax').value;
+const email      = document.getElementById('email_mkqw7x9b').value;
+const telefone   = document.getElementById('tel_mkqxwjzj').value;
+// convidados (já criados no board de convidados)
+const guestIds   = selectedGuests
+  .filter(g => g.id)
+  .map(g => ({ linkedPulseId: parseInt(g.id, 10) }));
+
+const vals = {
+  text_mkqrhjas:      title,
+  short_textossh5v4j: fmtValue,
+  ...(days && {       short_textb7obn15q: days }),
+  ...(maxG && {       text_mkqrjadb: maxG }),
+  text_mkqrvnnp:      duration,
+  long_text_mkqr5e1x: desc,
+  text_mkqrqmfw:      extras,
+  text_mkqrrpq3:      restr === 'Sim' ? ageRange : restr,
+  text_mkqrwawz:      temaP,
+  text_mkqrm18v:      subP,
+  text_mkqrth67:      temaS,
+  text_mkqrfjz3:      subS,
+  text_mkqr6nqa:      pub,
+  color_mkqr22e3:     { label: 'Caixa de Entrada' },
+  text_mkqwxtt2:      partnerType,
+  text_mkqw6k20:      partnerValue,
+  text_mkqw9854:      cnpj,
+  text_mkqxee4h:      secretaria,
+  text_mkqxrmax:      proponente,
+  text_mkqw7x9b:      email,
+  text_mkqxwjzj:      telefone,
+  ...(guestIds.length && {
+    board_relation_mkqr6b1t: { linkedPulseIds: guestIds }
+  })
+};
 
     const colJson = JSON.stringify(vals)
       .replace(/\\/g,'\\\\')
