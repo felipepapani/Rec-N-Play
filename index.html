@@ -23,7 +23,7 @@
   </style>
 </head>
 <body>
-  <h1>Nova atividade</h1>
+  <h1>Noaa atividade</h1>
   <form id="activityForm">
     <label>
       Qual tipo de parceria:
@@ -504,13 +504,16 @@ document.addEventListener('DOMContentLoaded', () => {
       text_mkqxrmax:      document.getElementById('text_mkqxrmax').value,
       text_mkqw7x9b:      document.getElementById('email_mkqw7x9b').value,
       text_mkqxwjzj:      document.getElementById('tel_mkqxwjzj').value,
-      ...(selectedGuests.filter(g=>g.id).length && {
+      ...(selectedGuests.filter(g => g.id).length
+    ? {
         board_relation_mkqr6b1t: {
           linkedPulseIds: selectedGuests
-            .filter(g=>g.id)
-            .map(g=>({ linkedPulseId: g.id }))
+            .filter(g => g.id)
+            .map(g => ({ linkedPulseId: g.id }))
         }
-      })
+      }
+    : {}
+)
     };
 
     const colJson = JSON.stringify(vals)
