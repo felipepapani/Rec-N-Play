@@ -27,7 +27,99 @@
 </head>
 <body>
   <h1> Nova atividade</h1>
-  <form id="activityForm">
+    <form id="activityForm"></form>
+      <label>
+        Qual tipo de parceria:
+        <select id="short_mkqwxtt2" required>
+          <option value="">-- selecione --</option>
+          <option>Parceiro de conteúdo</option>
+          <option>Curador</option>
+          <option>Realizador</option>
+          <option>Patrocinador</option>
+        </select>
+      </label>
+
+      <label>
+        Nome da Empresa
+        <input type="text" id="text_mkqw6k20" required>
+      </label>
+
+      <label>
+        CNPJ:
+        <input
+          type="text"
+          id="text_mkqw9854"
+          placeholder="00.000.000/0001-00"
+          maxlength="18"
+          required
+          pattern="\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}"
+        >
+      </label>
+
+      <label>
+        Selecione o Curador:
+        <select id="curador_mkqw6k20" required>
+          <option value="">-- selecione --</option>
+          <option>Curador 1</option>
+          <option>Curador 2</option>
+          <option>Curador 3</option>
+          <option>Curador 4</option>
+        </select>
+      </label>
+
+      <label>
+        Selecione o Realizador:
+        <select id="realizador_mkqw6k20" required>
+          <option value="">-- selecione --</option>
+          <option>Ampla</option>
+          <option>Porto Digital</option>
+          <option>Sebrae</option>
+        </select>
+      </label>
+
+      <label>
+        Selecione o Patrocinador:
+        <select id="pat_mkqw6k20" required>
+          <option value="">-- selecione --</option>
+          <option>Prefeitura do Recife</option>
+          <option>P2</option>
+          <option>P3</option>
+        </select>
+      </label>
+
+      <label>
+        Selecione a Secretaria:
+        <select id="short_mkqxee4h" required>
+          <option value="">-- selecione --</option>
+          <option>S1</option>
+          <option>S2</option>
+          <option>S3</option>
+        </select>
+      </label>
+
+       <label>
+        E-mail:
+        <input
+          type="email"
+          id="email_mkqw7x9b"
+          placeholder="usuario@exemplo.com"
+          required
+        >
+      </label>
+
+      <label>
+        Telefone:
+        <input
+          type="tel"
+          id="tel_mkqxwjzj"
+          placeholder="(11) 91234-5678"
+          maxlength="15"
+          pattern="\(\d{2}\) \d{4,5}-\d{4}"
+          required
+        >
+      </label>
+
+  
     <label>
       Nome da Atividade:
       <input type="text" id="text_mkqrhjas" required>
@@ -177,10 +269,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedGuests = [];
   let guestsToCreate = [];
 
+  // — Função genérica para GraphQL —
   async function mondayMutation(query) {
-    const res = await fetch(API_URL, {
+    const res  = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ query })
     });
     const json = await res.json();
@@ -192,6 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return json.data;
   }
 
+  // — Renderiza os slots de convidados + botão “+” —
   function renderSlots() {
     const c = document.getElementById('guestSlots');
     c.innerHTML = '';
@@ -201,10 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
       slot.textContent = g.name;
       const btn = document.createElement('button');
       btn.type = 'button'; btn.className = 'remove'; btn.innerHTML = '&times;';
-      btn.onclick = () => {
-        selectedGuests.splice(i,1);
-        renderSlots();
-      };
+      btn.onclick = () => { selectedGuests.splice(i,1); renderSlots(); };
       slot.appendChild(btn);
       c.appendChild(slot);
     });
@@ -220,6 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // — Modal de novo convidado —
   document.getElementById('closeGuestModalBtn').onclick = () => {
     document.getElementById('newGuestModal').classList.add('hidden');
   };
@@ -235,6 +327,23 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSlots();
   };
 
+  // — Toggle campos de parceria —
+  const partnership      = document.getElementById('text_mkqwxtt2');
+  const labelEmpresa     = document.getElementById('text_mkqw6k20').closest('label');
+  const labelCurador     = document.getElementById('curador_mkqw6k20').closest('label');
+  const labelRealizador  = document.getElementById('realizador_mkqw6k20').closest('label');
+  const labelPatrocinador= document.getElementById('pat_mkqw6k20').closest('label');
+
+  function togglePartnerFields() {
+    labelEmpresa.hidden      = partnership.value !== 'Parceiro de conteúdo';
+    labelCurador.hidden      = partnership.value !== 'Curador';
+    labelRealizador.hidden   = partnership.value !== 'Realizador';
+    labelPatrocinador.hidden = partnership.value !== 'Patrocinador';
+  }
+  partnership.addEventListener('change', togglePartnerFields);
+  togglePartnerFields();
+
+  // — Função para montar as árvores de Tema → Subtema —
   const subtemasPorTema = {
     "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
     "Comunicação": ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/Industrial","Podcast"],
@@ -269,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         div.textContent = sub;
         div.onclick = () => {
           hid.value = `${tema} → ${sub}`;
-          cont.querySelectorAll('.subtema-item').forEach(el => el.style.fontWeight='');
+          cont.querySelectorAll('.subtema-item').forEach(el=>el.style.fontWeight='');
           div.style.fontWeight = 'bold';
         };
         det.appendChild(div);
@@ -280,11 +389,13 @@ document.addEventListener('DOMContentLoaded', () => {
   buildTree('temaPrincipalTree','temaPrincipalValue');
   buildTree('temaSecundarioTree','temaSecundarioValue');
 
+  // — Contadores de caracteres —
   document.getElementById('long_text_mkqr5e1x')
     .addEventListener('input', e => document.getElementById('descCounter').textContent = `${e.target.value.length}/700`);
   document.getElementById('text_mkqrqmfw')
     .addEventListener('input', e => document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`);
 
+  // — Campos dinâmicos para “Formato de Atividade” e “Restrição de faixa etária” —
   const fmt   = document.getElementById('short_textossh5v4j'),
         daysL = document.getElementById('daysLabel'),
         maxL  = document.getElementById('maxGuestsLabel'),
@@ -302,6 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fmt.dispatchEvent(new Event('change'));
   rs.dispatchEvent(new Event('change'));
 
+  // — Submissão do formulário —
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
 
@@ -327,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
       guestsToCreate = [];
     }
 
-    // 2) Monta atividade
+    // 2) Coleta campos da atividade
     const title    = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
     const days     = document.getElementById('short_textb7obn15q').value;
     const maxG     = document.getElementById('text_mkqrjadb').value;
@@ -337,10 +449,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const restr    = document.getElementById('text_mkqrrpq3').value;
     const ageRange = document.getElementById('text_mkqrrpq3_range').value.replace(/"/g,'\\"');
     const pub      = document.getElementById('text_mkqr6nqa').value;
-    const guestIds = selectedGuests.map(g => parseInt(g.id, 10));
-    const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
-    const [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
+    const guestIds = selectedGuests.map(g => ({ linkedPulseId: g.id }));
 
+    // — Campos de parceria, CNPJ, secretaria, e-mail e telefone —
+    const partnerType  = partnership.value;
+    let partnerValue;
+    if (partnerType === 'Curador')       partnerValue = document.getElementById('curador_mkqw6k20').value;
+    else if (partnerType === 'Realizador')partnerValue = document.getElementById('realizador_mkqw6k20').value;
+    else if (partnerType === 'Patrocinador') partnerValue = document.getElementById('pat_mkqw6k20').value;
+    else                                  partnerValue = document.getElementById('text_mkqw6k20').value;
+
+    const cnpj      = document.getElementById('text_mkqw9854').value;
+    const secretaria= document.getElementById('text_mkqxee4h').value;
+    const email     = document.getElementById('text_mkqw7x9b').value;
+    const telefone  = document.getElementById('text_mkqxwjzj').value;
+
+    // 3) Monta column_values
     const vals = {
       text_mkqrhjas:      title,
       short_textossh5v4j: fmt.value,
@@ -350,17 +474,20 @@ document.addEventListener('DOMContentLoaded', () => {
       long_text_mkqr5e1x: desc,
       text_mkqrqmfw:      extras,
       text_mkqrrpq3:      restr==='Sim'? ageRange : restr,
-      text_mkqrwawz:      temaP,
-      text_mkqrm18v:      subP,
-      text_mkqrth67:      temaS,
-      text_mkqrfjz3:      subS,
+      text_mkqrwawz:      document.getElementById('temaPrincipalValue').value.split(' → ')[0],
+      text_mkqrm18v:      document.getElementById('temaPrincipalValue').value.split(' → ')[1] || '',
+      text_mkqrth67:      document.getElementById('temaSecundarioValue').value.split(' → ')[0],
+      text_mkqrfjz3:      document.getElementById('temaSecundarioValue').value.split(' → ')[1] || '',
       text_mkqr6nqa:      pub,
-      color_mkqr22e3:     { label: 'Caixa de Entrada' },
-      ...(guestIds.length && {
-        board_relation_mkqr6b1t: {
-          linkedPulseIds: guestIds.map(id => ({ linkedPulseId: id }))
-        }
-      })
+      color_mkqr22e3:     { label:'Caixa de Entrada' },
+      // novos campos
+      text_mkqwxtt2: partnerType,
+      text_mkqw6k20: partnerValue,
+      text_mkqw9854: cnpj,
+      text_mkqxee4h: secretaria,
+      text_mkqw7x9b: email,
+      text_mkqxwjzj: telefone,
+      ...(guestIds.length && { board_relation_mkqr6b1t: { linkedPulseIds: guestIds } })
     };
 
     const colJson = JSON.stringify(vals)
@@ -381,22 +508,24 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const resp = await mondayMutation(mutation);
       alert('Atividade criada! ID: ' + resp.create_item.id);
-      e.target.reset();
+      document.getElementById('activityForm').reset();
       selectedGuests = [];
       renderSlots();
       buildTree('temaPrincipalTree','temaPrincipalValue');
       buildTree('temaSecundarioTree','temaSecundarioValue');
       fmt.dispatchEvent(new Event('change'));
-      document.getElementById('text_mkqrrpq3').dispatchEvent(new Event('change'));
-    } catch (err) {
+      rs.dispatchEvent(new Event('change'));
+    } catch(err) {
       console.error(err);
       alert('Erro ao criar atividade. Veja console.');
     }
   });
 
+  // Inicializa
   renderSlots();
 });
 </script>
+
 
 
 </body>
