@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedGuests = [];
   let guestsToCreate = [];
 
-  // — Função genérica para GraphQL —
+  // generic GraphQL helper
   async function mondayMutation(query) {
     const res  = await fetch(API_URL, {
       method: 'POST',
@@ -282,64 +282,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return json.data;
   }
 
-  //
-  // → TOGGLE PARCERIA / SECRETARIA
-  //
-  const partnership   = document.getElementById('short_mkqwxtt2');
-  const sponsorSelect = document.getElementById('pat_mkqw6k20');
-  const labels        = {
-    empresa:      document.getElementById('labelEmpresa'),
-    cnpj:         document.getElementById('labelCNPJ'),
-    curador:      document.getElementById('labelCurador'),
-    realizador:   document.getElementById('labelRealizador'),
-    patrocinador: document.getElementById('labelPatrocinador'),
-    secretaria:   document.getElementById('labelSecretaria'),
-    proponente:   document.getElementById('labelProponente'),
-    email:        document.getElementById('labelEmail'),
-    telefone:     document.getElementById('labelTelefone')
-  };
-  function togglePartnerFields() {
-    Object.values(labels).forEach(l => {
-      l.classList.add('hidden');
-      const ctl = l.querySelector('input, select');
-      if (ctl) ctl.disabled = true;
-    });
-    const p = partnership.value;
-    if (p === 'Parceiro de conteúdo') {
-      ['empresa','cnpj','proponente','email','telefone'].forEach(k => {
-        labels[k].classList.remove('hidden');
-        labels[k].querySelector('input').disabled = false;
-      });
-    } else if (p === 'Curador') {
-      labels.curador.classList.remove('hidden');
-      labels.curador.querySelector('select').disabled = false;
-    } else if (p === 'Realizador') {
-      ['realizador','proponente','email','telefone'].forEach(k => {
-        labels[k].classList.remove('hidden');
-        labels[k].querySelector('input, select').disabled = false;
-      });
-    } else if (p === 'Patrocinador') {
-      ['patrocinador','proponente','email','telefone'].forEach(k => {
-        labels[k].classList.remove('hidden');
-        labels[k].querySelector('input, select').disabled = false;
-      });
-      if (sponsorSelect.value === 'Prefeitura do Recife') {
-        labels.secretaria.classList.remove('hidden');
-        labels.secretaria.querySelector('select').disabled = false;
-      }
-    }
-  }
-  partnership.addEventListener('change', togglePartnerFields);
-  sponsorSelect.addEventListener('change', togglePartnerFields);
-  togglePartnerFields();
-
-  //
-  // → CONVIDADOS (SLOTS + MODAL)
-  //
+  // render guest slots
   function renderSlots() {
     const c = document.getElementById('guestSlots');
     c.innerHTML = '';
-    selectedGuests.forEach((g, i) => {
+    selectedGuests.forEach((g,i) => {
       const slot = document.createElement('div');
       slot.className = 'guest-slot';
       slot.textContent = g.name;
@@ -360,10 +307,12 @@ document.addEventListener('DOMContentLoaded', () => {
       c.appendChild(add);
     }
   }
+
+  // guest modal handlers
   document.getElementById('closeGuestModalBtn').onclick = () => {
     document.getElementById('newGuestModal').classList.add('hidden');
   };
-  document.getElementById('saveGuestBtn').onclick = async () => {
+  document.getElementById('saveGuestBtn').onclick = () => {
     const name    = document.getElementById('guestNameInput').value.trim();
     const cargo   = document.getElementById('guestCargoInput').value.trim();
     const empresa = document.getElementById('guestEmpresaInput').value.trim();
@@ -374,12 +323,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('newGuestModal').classList.add('hidden');
     renderSlots();
   };
+
   renderSlots();
 
-  //
-  // → TEMA → SUBTEMA
-  //
-  const subtemasPorTema = {
+  // build tema/subtema trees
+  onst subtemasPorTema = {
     "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
     "Comunicação": ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/Industrial","Podcast"],
     "Dados e Segurança Digital": ["Análise de Dados","Blockchain","Cibersegurança","Governança de Dados","Investimentos/Criptomoedas","LGPD","NFT","Privacidade","Web3"],
@@ -424,17 +372,13 @@ document.addEventListener('DOMContentLoaded', () => {
   buildTree('temaPrincipalTree','temaPrincipalValue');
   buildTree('temaSecundarioTree','temaSecundarioValue');
 
-  //
-  // — Contadores de caracteres —
-  //
+  // character counters
   document.getElementById('long_text_mkqr5e1x')
     .addEventListener('input', e => document.getElementById('descCounter').textContent = `${e.target.value.length}/700`);
   document.getElementById('text_mkqrqmfw')
     .addEventListener('input', e => document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`);
 
-  //
-  // — Dinâmicos: Formato & Faixa Etária —
-  //
+  // dynamic form: days / max / age
   const fmt   = document.getElementById('short_textossh5v4j'),
         daysL = document.getElementById('daysLabel'),
         maxL  = document.getElementById('maxGuestsLabel'),
@@ -444,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showMax  = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
   fmt.addEventListener('change', () => {
     daysL.classList.toggle('hidden', !showDays.has(fmt.value));
-    maxL.classList.toggle('hidden', !showMax.has(fmt.value));
+    maxL .classList.toggle('hidden', !showMax.has(fmt.value));
   });
   rs.addEventListener('change', () => {
     ageL.classList.toggle('hidden', rs.value !== 'Sim');
@@ -452,13 +396,11 @@ document.addEventListener('DOMContentLoaded', () => {
   fmt.dispatchEvent(new Event('change'));
   rs.dispatchEvent(new Event('change'));
 
-  //
-  // — Submissão do formulário —
-  //
+  // submit handler
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
 
-    // 1) Cria convidados antes
+    // first, create any new guests
     if (guestsToCreate.length) {
       await Promise.all(guestsToCreate.map(async g => {
         const cols = { text_mkqreer2: g.name };
@@ -480,8 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
       guestsToCreate = [];
     }
 
-    // 2) Monta column_values e vincula convidados
-    const rsVal = document.getElementById('text_mkqrrpq3').value;
+    // collect form values
     const vals = {
       text_mkqrhjas:      document.getElementById('text_mkqrhjas').value,
       short_textossh5v4j: fmt.value,
@@ -490,9 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
       text_mkqrvnnp:      document.getElementById('text_mkqrvnnp').value,
       long_text_mkqr5e1x: document.getElementById('long_text_mkqr5e1x').value,
       text_mkqrqmfw:      document.getElementById('text_mkqrqmfw').value,
-      text_mkqrrpq3:      rsVal === 'Sim'
-                            ? document.getElementById('text_mkqrrpq3_range').value
-                            : rsVal,
+      text_mkqrrpq3:      rs.value === 'Sim' ? document.getElementById('text_mkqrrpq3_range').value : rs.value,
       text_mkqrwawz:      document.getElementById('temaPrincipalValue').value.split(' → ')[0] || '',
       text_mkqrm18v:      document.getElementById('temaPrincipalValue').value.split(' → ')[1] || '',
       text_mkqrth67:      document.getElementById('temaSecundarioValue').value.split(' → ')[0] || '',
@@ -500,29 +439,19 @@ document.addEventListener('DOMContentLoaded', () => {
       text_mkqr6nqa:      document.getElementById('text_mkqr6nqa').value,
       color_mkqr22e3:     { label: 'Caixa de Entrada' },
       text_mkqwxtt2:      partnership.value,
-      text_mkqw6k20:      (() => {
-        switch (partnership.value) {
-          case 'Curador': return document.getElementById('curador_mkqw6k20').value;
-          case 'Realizador': return document.getElementById('realizador_mkqw6k20').value;
-          case 'Patrocinador': return document.getElementById('pat_mkqw6k20').value;
-          default: return document.getElementById('text_mkqw6k20').value;
-        }
-      })(),
+      text_mkqw6k20:      document.getElementById('text_mkqw6k20').value,
       text_mkqw9854:      document.getElementById('text_mkqw9854').value,
       text_mkqxee4h:      document.getElementById('short_mkqxee4h').value,
       text_mkqxrmax:      document.getElementById('text_mkqxrmax').value,
       text_mkqw7x9b:      document.getElementById('email_mkqw7x9b').value,
       text_mkqxwjzj:      document.getElementById('tel_mkqxwjzj').value,
-      ...(selectedGuests.filter(g => g.id).length
-        ? {
-            board_relation_mkqr6b1t: {
-              linkedPulseIds: selectedGuests
-                .filter(g => g.id)
-                .map(g => ({ linkedPulseId: g.id }))
-            }
-          }
-        : {}
-      )
+      ...(selectedGuests.filter(g => g.id).length && {
+        board_relation_mkqr6b1t: {
+          linkedPulseIds: selectedGuests
+            .filter(g => g.id)
+            .map(g => ({ linkedPulseId: g.id }))
+        }
+      })
     };
 
     const colJson = JSON.stringify(vals)
@@ -547,12 +476,11 @@ document.addEventListener('DOMContentLoaded', () => {
       selectedGuests = [];
       renderSlots();
       togglePartnerFields();
-    } catch(err) {
+    } catch (err) {
       console.error(err);
       alert('Erro ao criar atividade. Veja console.');
     }
   });
-
 });
 </script>
 
