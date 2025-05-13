@@ -23,7 +23,7 @@
   </style>
 </head>
 <body>
-  <h1>Noaa atividade</h1>
+  <h1>Nova atividade</h1>
   <form id="activityForm">
     <label>
       Qual tipo de parceria:
@@ -266,78 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedGuests = [];
   let guestsToCreate = [];
 
-  //
-  // → TOGGLE PARCERIA / SECRETARIA
-  //
-  const partnership       = document.getElementById('short_mkqwxtt2');
-  const sponsorSelect     = document.getElementById('pat_mkqw6k20');
-  const labelEmpresa      = document.getElementById('labelEmpresa');
-  const labelCNPJ         = document.getElementById('labelCNPJ');
-  const labelCurador      = document.getElementById('labelCurador');
-  const labelRealizador   = document.getElementById('labelRealizador');
-  const labelPatrocinador = document.getElementById('labelPatrocinador');
-  const labelSecretaria   = document.getElementById('labelSecretaria');
-  const labelProponente   = document.getElementById('labelProponente');
-  const labelEmail        = document.getElementById('labelEmail');
-  const labelTelefone     = document.getElementById('labelTelefone');
-
-  function togglePartnerFields() {
-    // esconde e desabilita todos
-    [
-      labelEmpresa, labelCNPJ,
-      labelCurador, labelRealizador,
-      labelPatrocinador, labelSecretaria,
-      labelProponente, labelEmail,
-      labelTelefone
-    ].forEach(lbl => {
-      lbl.classList.add('hidden');
-      const ctl = lbl.querySelector('input,select');
-      if (ctl) ctl.disabled = true;
-    });
-
-    // exibe apenas o necessário
-    const tipo = partnership.value;
-    if (tipo === 'Parceiro de conteúdo') {
-      [labelEmpresa, labelCNPJ, labelProponente, labelEmail, labelTelefone]
-        .forEach(lbl => {
-          lbl.classList.remove('hidden');
-          lbl.querySelector('input').disabled = false;
-        });
-    }
-    else if (tipo === 'Curador') {
-      labelCurador.classList.remove('hidden');
-      labelCurador.querySelector('select').disabled = false;
-    }
-    else if (tipo === 'Realizador') {
-      [labelRealizador, labelProponente, labelEmail, labelTelefone]
-        .forEach(lbl => {
-          lbl.classList.remove('hidden');
-          const ctl = lbl.querySelector('input,select');
-          if (ctl) ctl.disabled = false;
-        });
-    }
-    else if (tipo === 'Patrocinador') {
-      [labelPatrocinador, labelProponente, labelEmail, labelTelefone]
-        .forEach(lbl => {
-          lbl.classList.remove('hidden');
-          const ctl = lbl.querySelector('input,select');
-          if (ctl) ctl.disabled = false;
-        });
-      // só exibe secretaria se for Prefeitura do Recife
-      if (sponsorSelect.value === 'Prefeitura do Recife') {
-        labelSecretaria.classList.remove('hidden');
-        labelSecretaria.querySelector('select').disabled = false;
-      }
-    }
-  }
-
-  partnership.addEventListener('change', togglePartnerFields);
-  sponsorSelect.addEventListener('change', togglePartnerFields);
-  togglePartnerFields(); // inicial
-
-  //
-  // → MONDAY.COM GraphQL
-  //
+  // — GraphQL genérico —
   async function mondayMutation(query) {
     const res  = await fetch(API_URL, {
       method: 'POST',
@@ -353,29 +282,23 @@ document.addEventListener('DOMContentLoaded', () => {
     return json.data;
   }
 
-  //
-  // → CONVIDADOS (SLOTS + MODAL)
-  //
+  // — Slots de convidados —
   function renderSlots() {
     const c = document.getElementById('guestSlots');
     c.innerHTML = '';
-    selectedGuests.forEach((g,i) => {
+    selectedGuests.forEach((g, i) => {
       const slot = document.createElement('div');
       slot.className = 'guest-slot';
       slot.textContent = g.name;
       const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'remove';
-      btn.innerHTML = '&times;';
+      btn.type = 'button'; btn.className = 'remove'; btn.innerHTML = '&times;';
       btn.onclick = () => { selectedGuests.splice(i,1); renderSlots(); };
       slot.appendChild(btn);
       c.appendChild(slot);
     });
     if (selectedGuests.length < 6) {
       const add = document.createElement('button');
-      add.type = 'button';
-      add.id = 'addGuestBtn';
-      add.textContent = '+';
+      add.type = 'button'; add.id = 'addGuestBtn'; add.textContent = '+';
       add.onclick = () => {
         document.getElementById('newGuestModal').classList.remove('hidden');
         ['guestNameInput','guestCargoInput','guestEmpresaInput']
@@ -385,6 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // — Modal de convidados —
   document.getElementById('closeGuestModalBtn').onclick = () => {
     document.getElementById('newGuestModal').classList.add('hidden');
   };
@@ -399,9 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSlots();
   };
 
-  //
-  // → TEMA → SUBTEMA
-  //
+  // — Tema → Subtema —
   const subtemasPorTema = {
     "Artes e Cultura": ["Arquitetura","Artes Visuais","Audiovisual","Circo","Cultura Maker","Cultura Popular","Dança","Fotografia","Gastronomia","HQ","Intervenções Urbanas","Literatura","Moda","Música","Patrimônio Imaterial","Teatro"],
     "Comunicação": ["Comunicação","Creator","Criação de Conteúdo","Design Gráfico/Industrial","Podcast"],
@@ -447,27 +369,23 @@ document.addEventListener('DOMContentLoaded', () => {
   buildTree('temaPrincipalTree','temaPrincipalValue');
   buildTree('temaSecundarioTree','temaSecundarioValue');
 
-  //
-  // → CONTADORES
-  //
+  // — Contadores de caracteres —
   document.getElementById('long_text_mkqr5e1x')
     .addEventListener('input', e => document.getElementById('descCounter').textContent = `${e.target.value.length}/700`);
   document.getElementById('text_mkqrqmfw')
     .addEventListener('input', e => document.getElementById('extrasCounter').textContent = `${e.target.value.length}/700`);
 
-  //
-  // → DINÂMICOS: FORMATO & FAIXA ETÁRIA
-  //
-  const fmt   = document.getElementById('short_textossh5v4j'),
-        daysL = document.getElementById('daysLabel'),
-        maxL  = document.getElementById('maxGuestsLabel'),
-        rs    = document.getElementById('text_mkqrrpq3'),
-        ageL  = document.getElementById('ageRangeLabel'),
+  // — Dinâmicos: Formato & Faixa etária —
+  const fmt    = document.getElementById('short_textossh5v4j'),
+        daysL  = document.getElementById('daysLabel'),
+        maxL   = document.getElementById('maxGuestsLabel'),
+        rs     = document.getElementById('text_mkqrrpq3'),
+        ageL   = document.getElementById('ageRangeLabel'),
         showDays = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon','Intervenção urbana','Demonstração','Experiência','Visitas/ percursos guiados','Campeonato','Exposição artística','Feira']),
         showMax  = new Set(['Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
   fmt.addEventListener('change', () => {
     daysL.classList.toggle('hidden', !showDays.has(fmt.value));
-    maxL .classList.toggle('hidden', !showMax.has(fmt.value));
+    maxL.classList.toggle('hidden', !showMax.has(fmt.value));
   });
   rs.addEventListener('change', () => {
     ageL.classList.toggle('hidden', rs.value !== 'Sim');
@@ -475,13 +393,60 @@ document.addEventListener('DOMContentLoaded', () => {
   fmt.dispatchEvent(new Event('change'));
   rs.dispatchEvent(new Event('change'));
 
-  //
-  // → SUBMISSÃO
-  //
+  // — Parceria / Secretaria —
+  const partnership       = document.getElementById('short_mkqwxtt2'),
+        sponsorSelect     = document.getElementById('pat_mkqw6k20'),
+        labels            = {
+          empresa:      document.getElementById('labelEmpresa'),
+          cnpj:         document.getElementById('labelCNPJ'),
+          curador:      document.getElementById('labelCurador'),
+          realizador:   document.getElementById('labelRealizador'),
+          patrocinador: document.getElementById('labelPatrocinador'),
+          secretaria:   document.getElementById('labelSecretaria'),
+          proponente:   document.getElementById('labelProponente'),
+          email:        document.getElementById('labelEmail'),
+          telefone:     document.getElementById('labelTelefone')
+        };
+  function togglePartnerFields() {
+    Object.values(labels).forEach(l => {
+      l.classList.add('hidden');
+      const ctl = l.querySelector('input,select');
+      if (ctl) ctl.disabled = true;
+    });
+    const p = partnership.value;
+    if (p === 'Parceiro de conteúdo') {
+      ['empresa','cnpj','proponente','email','telefone'].forEach(k => {
+        labels[k].classList.remove('hidden');
+        labels[k].querySelector('input').disabled = false;
+      });
+    } else if (p === 'Curador') {
+      labels.curador.classList.remove('hidden');
+      labels.curador.querySelector('select').disabled = false;
+    } else if (p === 'Realizador') {
+      ['realizador','proponente','email','telefone'].forEach(k => {
+        labels[k].classList.remove('hidden');
+        labels[k].querySelector('input,select').disabled = false;
+      });
+    } else if (p === 'Patrocinador') {
+      ['patrocinador','proponente','email','telefone'].forEach(k => {
+        labels[k].classList.remove('hidden');
+        labels[k].querySelector('input,select').disabled = false;
+      });
+      if (sponsorSelect.value === 'Prefeitura do Recife') {
+        labels.secretaria.classList.remove('hidden');
+        labels.secretaria.querySelector('select').disabled = false;
+      }
+    }
+  }
+  partnership.addEventListener('change', togglePartnerFields);
+  sponsorSelect.addEventListener('change', togglePartnerFields);
+  togglePartnerFields();
+
+  // — Submissão do formulário —
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
 
-    // 1) Cria convidados
+    // 1) Criar convidados
     if (guestsToCreate.length) {
       await Promise.all(guestsToCreate.map(async g => {
         const cols = { text_mkqreer2: g.name };
@@ -503,116 +468,90 @@ document.addEventListener('DOMContentLoaded', () => {
       guestsToCreate = [];
     }
 
-// 2) Monta activity
-const fmt        = document.getElementById('short_textossh5v4j');
-const title      = document.getElementById('text_mkqrhjas').value.replace(/"/g, '\\"');
-const fmtValue   = fmt.value;
-const days       = document.getElementById('short_textb7obn15q').value;
-const maxG       = document.getElementById('text_mkqrjadb').value;
-const duration   = document.getElementById('text_mkqrvnnp').value.replace(/"/g, '\\"');
-const desc       = document.getElementById('long_text_mkqr5e1x').value.replace(/"/g, '\\"');
-const extras     = document.getElementById('text_mkqrqmfw').value.replace(/"/g, '\\"');
-const restr      = document.getElementById('text_mkqrrpq3').value;
-const ageRange   = document.getElementById('text_mkqrrpq3_range').value.replace(/"/g, '\\"');
-const pub        = document.getElementById('text_mkqr6nqa').value;
+    // 2) Monta activity
+    const title      = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
+    const fmtValue   = fmt.value;
+    const days       = document.getElementById('short_textb7obn15q').value;
+    const maxG       = document.getElementById('text_mkqrjadb').value;
+    const duration   = document.getElementById('text_mkqrvnnp').value.replace(/"/g,'\\"');
+    const desc       = document.getElementById('long_text_mkqr5e1x').value.replace(/"/g,'\\"');
+    const extras     = document.getElementById('text_mkqrqmfw').value.replace(/"/g,'\\"');
+    const restr      = document.getElementById('text_mkqrrpq3').value;
+    const ageRange   = document.getElementById('text_mkqrrpq3_range').value.replace(/"/g,'\\"');
+    const pub        = document.getElementById('text_mkqr6nqa').value;
+    const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
+    const [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
+    const partnerType  = partnership.value;
+    let partnerValue;
+    switch (partnerType) {
+      case 'Curador':      partnerValue = document.getElementById('curador_mkqw6k20').value; break;
+      case 'Realizador':   partnerValue = document.getElementById('realizador_mkqw6k20').value; break;
+      case 'Patrocinador': partnerValue = document.getElementById('pat_mkqw6k20').value; break;
+      default:             partnerValue = document.getElementById('text_mkqw6k20').value; break;
+    }
+    const cnpj       = document.getElementById('text_mkqw9854').value;
+    const secretaria = document.getElementById('short_mkqxee4h').value;
+    const proponente = document.getElementById('text_mkqxrmax').value;
+    const email      = document.getElementById('email_mkqw7x9b').value;
+    const telefone   = document.getElementById('tel_mkqxwjzj').value;
+    const guestIds   = selectedGuests
+      .filter(g => g.id)
+      .map(g => ({ linkedPulseId: parseInt(g.id, 10) }));
+    const vals = {
+      text_mkqrhjas:      title,
+      short_textossh5v4j: fmtValue,
+      ...(days && { short_textb7obn15q: days }),
+      ...(maxG && { text_mkqrjadb: maxG }),
+      text_mkqrvnnp:      duration,
+      long_text_mkqr5e1x: desc,
+      text_mkqrqmfw:      extras,
+      text_mkqrrpq3:      restr === 'Sim' ? ageRange : restr,
+      text_mkqrwawz:      temaP,
+      text_mkqrm18v:      subP,
+      text_mkqrth67:      temaS,
+      text_mkqrfjz3:      subS,
+      text_mkqr6nqa:      pub,
+      color_mkqr22e3:     { label: 'Caixa de Entrada' },
+      text_mkqwxtt2:      partnerType,
+      text_mkqw6k20:      partnerValue,
+      text_mkqw9854:      cnpj,
+      text_mkqxee4h:      secretaria,
+      text_mkqxrmax:      proponente,
+      text_mkqw7x9b:      email,
+      text_mkqxwjzj:      telefone,
+      ...(guestIds.length && {
+        board_relation_mkqr6b1t: { linkedPulseIds: guestIds }
+      })
+    };
+    const colJson = JSON.stringify(vals)
+      .replace(/\\/g,'\\\\')
+      .replace(/"/g,'\\"')
+      .replace(/\n/g,'\\n');
+    const mutation = `
+      mutation {
+        create_item(
+          board_id: ${BOARD_ID},
+          item_name: "${vals.text_mkqrhjas.replace(/"/g,'\\"')}",
+          column_values: "${colJson}"
+        ) { id }
+      }
+    `;
+    try {
+      const resp = await mondayMutation(mutation);
+      alert('Atividade criada! ID: ' + resp.create_item.id);
+      document.getElementById('activityForm').reset();
+      selectedGuests = [];
+      renderSlots();
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao criar atividade. Veja console.');
+    }
+  });
 
-// tema e subtema
-const [temaP, subP = ''] = document
-  .getElementById('temaPrincipalValue')
-  .value.split(' → ');
-const [temaS, subS = ''] = document
-  .getElementById('temaSecundarioValue')
-  .value.split(' → ');
-
-// parceria e campos associados
-const partnerType = partnership.value;
-let partnerValue;
-switch (partnerType) {
-  case 'Curador':
-    partnerValue = document.getElementById('curador_mkqw6k20').value;
-    break;
-  case 'Realizador':
-    partnerValue = document.getElementById('realizador_mkqw6k20').value;
-    break;
-  case 'Patrocinador':
-    partnerValue = document.getElementById('pat_mkqw6k20').value;
-    break;
-  default:
-    partnerValue = document.getElementById('text_mkqw6k20').value;
-}
-
-// outros campos de parceria
-const cnpj       = document.getElementById('text_mkqw9854').value;
-const secretaria = document.getElementById('short_mkqxee4h').value;
-const proponente = document.getElementById('text_mkqxrmax').value;
-const email      = document.getElementById('email_mkqw7x9b').value;
-const telefone   = document.getElementById('tel_mkqxwjzj').value;
-
-// convidados (já criados no board de convidados)
-const guestIds = selectedGuests
-  .filter(g => g.id)
-  .map(g => ({ linkedPulseId: parseInt(g.id, 10) }));
-
-const vals = {
-  text_mkqrhjas:      title,
-  short_textossh5v4j: fmtValue,
-  ...(days && { short_textb7obn15q: days }),
-  ...(maxG && { text_mkqrjadb: maxG }),
-  text_mkqrvnnp:      duration,
-  long_text_mkqr5e1x: desc,
-  text_mkqrqmfw:      extras,
-  text_mkqrrpq3:      restr === 'Sim' ? ageRange : restr,
-  text_mkqrwawz:      temaP,
-  text_mkqrm18v:      subP,
-  text_mkqrth67:      temaS,
-  text_mkqrfjz3:      subS,
-  text_mkqr6nqa:      pub,
-  color_mkqr22e3:     { label: 'Caixa de Entrada' },
-  text_mkqwxtt2:      partnerType,
-  text_mkqw6k20:      partnerValue,
-  text_mkqw9854:      cnpj,
-  text_mkqxee4h:      secretaria,
-  text_mkqxrmax:      proponente,
-  text_mkqw7x9b:      email,
-  text_mkqxwjzj:      telefone,
-  ...(guestIds.length && {
-    board_relation_mkqr6b1t: { linkedPulseIds: guestIds }
-  })
-};
-
-const colJson = JSON.stringify(vals)
-  .replace(/\\/g, '\\\\')
-  .replace(/"/g, '\\"')
-  .replace(/\n/g, '\\n');
-
-const mutation = `
-  mutation {
-    create_item(
-      board_id: ${BOARD_ID},
-      item_name: "${vals.text_mkqrhjas.replace(/"/g, '\\"')}",
-      column_values: "${colJson}"
-    ) { id }
-  }
-`;
-
-try {
-  const resp = await mondayMutation(mutation);
-  alert('Atividade criada! ID: ' + resp.create_item.id);
-  document.getElementById('activityForm').reset();
-  selectedGuests = [];
-  renderSlots();
-} catch (err) {
-  console.error(err);
-  alert('Erro ao criar atividade. Veja console.');
-}
-
-
-  // inicia slots
+  // Inicializa slots
   renderSlots();
 });
 </script>
-
-
 
 </body>
 </html>
