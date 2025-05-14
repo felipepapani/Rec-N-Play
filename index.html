@@ -560,78 +560,101 @@ Object.entries(durationMapping).forEach(([time, formats]) => {
   durationLabel.classList.toggle('hidden', durationSelect.options.length <= 1);
 });
 
-// dispara uma vez para inicializar o estado corretamente
-const form = document.getElementById('activityForm');
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
+const formElement = document.getElementById('activityForm');
+const submitButton = formElement.querySelector('button[type="submit"]');
+let isSending = false;
 
-    // 1) Cria convidados
+formElement.addEventListener('submit', async function(event) {
+  event.preventDefault();
+
+  // Evita envios duplicados
+  if (isSending) return;
+  isSending = true;
+  submitButton.disabled = true;
+
+  try {
+    // 1) Cria itens de convidados (se houver)
     if (guestsToCreate.length) {
-      await Promise.all(guestsToCreate.map(async g => {
-        const cols = { text_mkqreer2: g.name };
-        if (g.cargo)   cols.text_mkqry55n = g.cargo;
-        if (g.empresa) cols.text_mkqrghw1 = g.empresa;
-        const esc = JSON.stringify(cols).replace(/"/g,'\\"');
-        const q = `
+      await Promise.all(guestsToCreate.map(async guest => {
+        const cols = { text_mkqreer2: guest.name };
+        if (guest.cargo)   cols.text_mkqry55n = guest.cargo;
+        if (guest.empresa) cols.text_mkqrghw1 = guest.empresa;
+        const escaped = JSON.stringify(cols).replace(/"/g, '\\"');
+        const guestMutation = `
           mutation {
             create_item(
               board_id: ${GUEST_BOARD_ID},
-              item_name: "${g.name.replace(/"/g,'\\"')}",
-              column_values: "${esc}"
+              item_name: "${guest.name.replace(/"/g,'\\"')}",
+              column_values: "${escaped}"
             ) { id }
           }
         `;
-        const res = await mondayMutation(q);
-        g.id = res.create_item.id;
+        const res = await mondayMutation(guestMutation);
+        guest.id = res.create_item.id;
       }));
       guestsToCreate = [];
     }
 
-    // 2) Monta atividade
-    const title      = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
-    const fmtValue   = fmt.value;
-    const days       = document.getElementById('short_textb7obn15q').value;
-    const maxG       = document.getElementById('text_mkqrjadb').value;
-    const duration   = document.getElementById('text_mkqrvnnp').value.replace(/"/g,'\\"');
-    const desc       = document.getElementById('long_text_mkqr5e1x').value.replace(/"/g,'\\"');
-    const extras     = document.getElementById('text_mkqrqmfw').value.replace(/"/g,'\\"');
-    const restr      = document.getElementById('text_mkqrrpq3').value;
-    const ageRange   = document.getElementById('text_mkqrrpq3_range').value.replace(/"/g,'\\"');
-    const pub        = document.getElementById('text_mkqr6nqa').value;
-    const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
-    const [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
-    const partnerType      = partnership.value;
-    let   partnerValue;
+    // 2) Extrai todos os campos do formulário
+    const activityTitle      = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
+    const activityFormat     = document.getElementById('short_textossh5v4j').value;
+    const days               = document.getElementById('short_textb7obn15q').value;
+    const maxGuests          = document.getElementById('text_mkqrjadb').value;
+    const activityDuration   = document.getElementById('text_mkqrvnnp').value.replace(/"/g,'\\"');
+    const description         = document.getElementById('long_text_mkqr5e1x').value.replace(/"/g,'\\"');
+    const extraInfo          = document.getElementById('text_mkqrqmfw').value.replace(/"/g,'\\"');
+    const ageRestriction     = document.getElementById('text_mkqrrpq3').value;
+    const ageRange           = document.getElementById('text_mkqrrpq3_range').value.replace(/"/g,'\\"');
+    const audience           = document.getElementById('text_mkqr6nqa').value;
+
+    const [temaP, subtemaP = ''] = document
+      .getElementById('temaPrincipalValue')
+      .value.split(' → ');
+    const [temaS, subtemaS = ''] = document
+      .getElementById('temaSecundarioValue')
+      .value.split(' → ');
+
+    const partnerType = document.getElementById('short_mkqwxtt2').value;
+    let partnerValue;
     switch (partnerType) {
-      case 'Curador':      partnerValue = document.getElementById('curador_mkqw6k20').value; break;
-      case 'Realizador':   partnerValue = document.getElementById('realizador_mkqw6k20').value; break;
-      case 'Patrocinador': partnerValue = document.getElementById('pat_mkqw6k20').value; break;
-      default:             partnerValue = document.getElementById('text_mkqw6k20').value; break;
+      case 'Curador':
+        partnerValue = document.getElementById('curador_mkqw6k20').value;
+        break;
+      case 'Realizador':
+        partnerValue = document.getElementById('realizador_mkqw6k20').value;
+        break;
+      case 'Patrocinador':
+        partnerValue = document.getElementById('pat_mkqw6k20').value;
+        break;
+      default:
+        partnerValue = document.getElementById('text_mkqw6k20').value;
     }
+
     const cnpj       = document.getElementById('text_mkqw9854').value;
     const secretaria = document.getElementById('short_mkqxee4h').value;
     const proponente = document.getElementById('text_mkqxrmax').value;
     const email      = document.getElementById('email_mkqw7x9b').value;
     const telefone   = document.getElementById('tel_mkqxwjzj').value;
-    const guestIds   = selectedGuests
-      .filter(g => g.id)
-      .map(g => ({ linkedPulseId: parseInt(g.id,10) }));
 
-    const vals = {
-      text_mkqrhjas:      title,
-      short_textossh5v4j: fmtValue,
-      ...(days && { short_textb7obn15q: days }),
-      ...(maxG && { text_mkqrjadb: maxG }),
-      text_mkqrvnnp:      duration,
-      long_text_mkqr5e1x: desc,
-      text_mkqrqmfw:      extras,
-      text_mkqrrpq3:      restr==='Sim'? ageRange : restr,
+    const guestIds = selectedGuests
+      .filter(g => g.id)
+      .map(g => ({ linkedPulseId: parseInt(g.id, 10) }));
+
+    // 3) Monta o objeto column_values
+    const columnValues = {
+      text_mkqrhjas:      activityTitle,
+      short_textossh5v4j: activityFormat,
+      ...(days      && { short_textb7obn15q: days }),
+      ...(maxGuests && { text_mkqrjadb: maxGuests }),
+      text_mkqrvnnp:      activityDuration,
+      long_text_mkqr5e1x: description,
+      text_mkqrqmfw:      extraInfo,
+      text_mkqrrpq3:      ageRestriction === 'Sim' ? ageRange : ageRestriction,
       text_mkqrwawz:      temaP,
-      text_mkqrm18v:      subP,
+      text_mkqrm18v:      subtemaP,
       text_mkqrth67:      temaS,
-      text_mkqrfjz3:      subS,
-      text_mkqr6nqa:      pub,
-      color_mkqr22e3:     { label:'Caixa de Entrada' },
+      text_mkqrfjz3:      subtemaS,
+      text_mkqr6nqa:      audience,
       text_mkqwxtt2:      partnerType,
       text_mkqw6k20:      partnerValue,
       text_mkqw9854:      cnpj,
@@ -639,61 +662,43 @@ const form = document.getElementById('activityForm');
       text_mkqxrmax:      proponente,
       text_mkqw7x9b:      email,
       text_mkqxwjzj:      telefone,
-      ...(guestIds.length && {
-        board_relation_mkqr6b1t: { linkedPulseIds: guestIds }
-      })
+      ...(guestIds.length && { board_relation_mkqr6b1t: { linkedPulseIds: guestIds } })
     };
 
-    const colJson = JSON.stringify(vals)
-      .replace(/\\/g,'\\\\')
-      .replace(/"/g,'\\"')
-      .replace(/\n/g,'\\n');
+    const escapedColumns = JSON.stringify(columnValues)
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n');
 
-    const mutation = `
+    const activityMutation = `
       mutation {
         create_item(
           board_id: ${BOARD_ID},
-          item_name: "${title}",
-          column_values: "${colJson}"
+          item_name: "${activityTitle}",
+          column_values: "${escapedColumns}"
         ) { id }
       }
     `;
-    try {
-      const resp = await mondayMutation(mutation);
-      alert('Atividade criada! ID: ' + resp.create_item.id);
-      document.getElementById('activityForm').reset();
-      selectedGuests = [];
-      renderSlots();
-      buildTree('temaPrincipalTree','temaPrincipalValue');
-      buildTree('temaSecundarioTree','temaSecundarioValue');
-      fmt.dispatchEvent(new Event('change'));
-      rs.dispatchEvent(new Event('change'));
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao criar atividade. Veja console.');
-    }
-    
-    // 4) Envia o POST com keepalive antes de sair
-    const payload = JSON.stringify({ query: mutation });
-    fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: payload,
-      keepalive: true
-    });
 
-    // 5) Redireciona imediatamente
+    // 4) Envia a mutation e aguarda resposta
+    const activityResponse = await mondayMutation(activityMutation);
+    alert('Atividade criada! ID: ' + activityResponse.create_item.id);
+
+    // 5) Redireciona
     window.location.href = 'confirmation.html';
+
+  } catch (error) {
+    console.error(error);
+    alert('Erro ao criar atividade. Veja o console para detalhes.');
+    isSending = false;
+    submitButton.disabled = false;
+  }
+});
+
+    renderSlots();
+    buildTree('temaPrincipalTree','temaPrincipalValue');
+    buildTree('temaSecundarioTree','temaSecundarioValue');
   });
-
-  renderSlots();
-  buildTree('temaPrincipalTree','temaPrincipalValue');
-  buildTree('temaSecundarioTree','temaSecundarioValue');
-
-  });
-
-  
-
 </script>
 
 
