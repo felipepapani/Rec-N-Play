@@ -18,22 +18,23 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, sans-serif;
-   background-image: url('fundo.webp');
-  color: var(--font-color);
+  /* Cor de fundo de fallback */
+  background-color: var(--background-color);
+
+  /* Imagem de fundo única e responsiva */
+  background-image: url('fundo.webp');
+  background-repeat: no-repeat;       /* não repete */
+  background-position: center center; /* centraliza */
+  background-size: cover;             /* cobre toda a área mantendo proporção */
+
+  /* Layout flex para centrar o conteúdo */
   display: flex;
-  flex-direction: column; /* empilha título e container */
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+
   min-height: 100vh;
   padding: 2rem;
-}
-
-body {
-  /* Ajuste aqui a URL da sua imagem */
- 
-  background-size: cover;        /* preenche todo o container */
-  background-position: center;   /* centraliza a imagem */
-  background-repeat: no-repeat;  /* não repete em mosaico */
 }
 
 form {
