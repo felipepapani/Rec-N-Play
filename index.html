@@ -23,8 +23,8 @@
   </style>
 </head>
 <body>
-  <h1>Noaa atividade</h1>
-  <form id="activityForm" action="confirmation.html" method="POST">
+  <h1>Nova atividade</h1>
+  <form id="activityForm">
     <label>
       Qual tipo de parceria:
       <select id="short_mkqwxtt2" required>
@@ -303,9 +303,8 @@ document.addEventListener('DOMContentLoaded', () => {
       add.type = 'button'; add.id = 'addGuestBtn'; add.textContent = '+';
       add.onclick = () => {
         document.getElementById('newGuestModal').classList.remove('hidden');
-        ['guestNameInput','guestCargoInput','guestEmpresaInput'].forEach(id => {
-          document.getElementById(id).value = '';
-        });
+        ['guestNameInput','guestCargoInput','guestEmpresaInput']
+          .forEach(id => document.getElementById(id).value = '');
       };
       c.appendChild(add);
     }
@@ -352,8 +351,8 @@ document.addEventListener('DOMContentLoaded', () => {
           hid  = document.getElementById(hiddenInputId);
     cont.innerHTML = '';
     Object.entries(subtemasPorTema).forEach(([tema,subs]) => {
-      const det = document.createElement('details');
-      const sum = document.createElement('summary');
+      const det = document.createElement('details'),
+            sum = document.createElement('summary');
       sum.textContent = tema;
       det.appendChild(sum);
       subs.forEach(sub => {
@@ -362,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
         div.textContent = sub;
         div.onclick = () => {
           hid.value = `${tema} → ${sub}`;
-          cont.querySelectorAll('.subtema-item').forEach(el => el.style.fontWeight = '');
+          cont.querySelectorAll('.subtema-item').forEach(el=>el.style.fontWeight='');
           div.style.fontWeight = 'bold';
         };
         det.appendChild(div);
@@ -446,70 +445,153 @@ document.addEventListener('DOMContentLoaded', () => {
   sponsorSelect.addEventListener('change', togglePartnerFields);
   togglePartnerFields();
 
-  // — Máscaras de CNPJ e Telefone —
+
   function maskCNPJ(value) {
-    value = value.replace(/\D/g, "");
-    value = value.replace(/^(\d{2})(\d)/, "$1.$2");
-    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
-    value = value.replace(/\.(\d{3})(\d)/, ".$1/$2");
-    value = value.replace(/(\d{4})(\d)/, "$1-$2");
-    return value;
-  }
-  function maskPhone(value) {
-    value = value.replace(/\D/g, "");
-    value = value.replace(/^(\d{2})(\d)/, "($1) $2");
-    value = value.replace(/(\d{5})(\d)/, "$1-$2");
-    return value.slice(0, 15);
-  }
-  document.getElementById('text_mkqw9854').addEventListener('input', e => {
-    e.target.value = maskCNPJ(e.target.value);
-  });
-  document.getElementById('tel_mkqxwjzj').addEventListener('input', e => {
-    e.target.value = maskPhone(e.target.value);
-  });
+  value = value.replace(/\D/g, "");
+  value = value.replace(/^(\d{2})(\d)/, "$1.$2");
+  value = value.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+  value = value.replace(/\.(\d{3})(\d)/, ".$1/$2");
+  value = value.replace(/(\d{4})(\d)/, "$1-$2");
+  return value;
+}
+function maskPhone(value) {
+  value = value.replace(/\D/g, "");
+  // DDD
+  value = value.replace(/^(\d{2})(\d)/, "($1) $2");
+  // Se tiver 5 dígitos no bloco, insere hífen após o quinto
+  value = value.replace(/(\d{5})(\d)/, "$1-$2");
+  // Limita tamanho máximo
+  return value.slice(0, 15);
+}
 
-  // — Duration mapping —
+const cnpjInput   = document.getElementById('text_mkqw9854');
+const phoneInput  = document.getElementById('tel_mkqxwjzj');
+
+cnpjInput.addEventListener('input', e => {
+  e.target.value = maskCNPJ(e.target.value);
+});
+phoneInput.addEventListener('input', e => {
+  e.target.value = maskPhone(e.target.value);
+});
+
+
   const durationMapping = {
-    "00:30": ["Apresentação artística","Apresentação de trabalhos","Contação de História","Demonstração","Intervenção urbana","Rodada de negócios"],
-    "00:45": ["Apresentação artística","Apresentação de trabalhos","Contação de História","Palestra","Rodada de negócios","Visitas/ percursos guiados"],
-    "01:00": ["Apresentação artística","Apresentação de trabalhos","Atendimentos","Campeonato","Contação de História","Cortejo","Demonstração","Desfile de moda","Exibição audiovisual","Experiência","Exposição artística","Intervenção urbana","Mentoria","Mesa redonda","Minicurso","Oficina","Palestra","Pitchs","Revisão de portfólio","Roda de conversa","Rodada de negócios","Show","Talk Show","Visitas/ percursos guiados","Workshop"],
-    "01:15": ["Mesa redonda","Oficina","Roda de conversa"],
-    "01:30": ["Apresentação artística","Apresentação de trabalhos","Contação de História","Cortejo","Demonstração","Desfile de moda","Exibição audiovisual","Experiência","Intervenção urbana","Mentoria","Mesa redonda","Minicurso","Oficina","Pitchs","Revisão de portfólio","Roda de conversa","Rodada de negócios","Show","Talk Show","Visitas/ percursos guiados","Workshop"],
-    "01:45": ["Mesa redonda","Oficina","Roda de conversa"],
-    "02:00": ["Apresentação artística","Apresentação de trabalhos","Atendimentos","Campeonato","Cortejo","Demonstração","Desfile de moda","Exibição audiovisual","Experiência","Exposição artística","Intervenção urbana","Mentoria","Minicurso","Oficina","Pitchs","Revisão de portfólio","Rodada de negócios","Show","Talk Show","Visitas/ percursos guiados","Workshop"],
-    "02:30": ["Apresentação artística","Exibição audiovisual","Oficina","Show","Workshop"],
-    "03:00": ["Apresentação artística","Atendimentos","Campeonato","Exibição audiovisual","Experiência","Exposição artística","Hackathon","Oficina","Show","Visitas/ percursos guiados","Workshop"],
-    "03:30": ["Exibição audiovisual"],
-    "04:00": ["Atendimentos","Campeonato","Exibição audiovisual","Experiência","Exposição artística","Feira","Hackathon","Oficina","Show"],
-    "05:00": ["Hackathon","Show"],
-    "09:00": ["Hackathon","Intervenção urbana","Mentoria","Oficina","Show"]
-  };
-  const durationSelect = document.getElementById('text_mkqrvnnp');
-  const durationLabel  = document.getElementById('durationLabel');
-  fmt.addEventListener('change', () => {
-    durationSelect.innerHTML = '<option value="">-- selecione --</option>';
-    const currFmt = fmt.value.trim().toLowerCase();
-    Object.entries(durationMapping).forEach(([time, formats]) => {
-      const lowerFormats = formats.map(f => f.trim().toLowerCase());
-      if (lowerFormats.includes(currFmt)) {
-        const opt = document.createElement('option');
-        opt.value = time;
-        opt.textContent = time === '09:00' ? 'Dia todo' : time;
-        durationSelect.appendChild(opt);
-      }
-    });
-    durationLabel.classList.toggle('hidden', durationSelect.options.length <= 1);
-  });
-  fmt.dispatchEvent(new Event('change'));
+  "00:30": [
+    "Apresentação artística",
+    "Apresentação de trabalhos",
+    "Contação de História",
+    "Demonstração",
+    "Intervenção urbana",
+    "Rodada de negócios"
+  ],
+  "00:45": [
+    "Apresentação artística",
+    "Apresentação de trabalhos",
+    "Contação de História",
+    "Palestra",
+    "Rodada de negócios",
+    "Visitas/ percursos guiados"
+  ],
+  "01:00": [
+    "Apresentação artística","Apresentação de trabalhos","Atendimentos","Campeonato",
+    "Contação de História","Cortejo","Demonstração","Desfile de moda",
+    "Exibição audiovisual","Experiência","Exposição artística","Intervenção urbana",
+    "Mentoria","Mesa redonda","Minicurso","Oficina","Palestra","Pitchs",
+    "Revisão de portfólio","Roda de conversa","Rodada de negócios",
+    "Show","Talk Show","Visitas/ percursos guiados","Workshop"
+  ],
+  "01:15": ["Mesa redonda","Oficina","Roda de conversa"],
+  "01:30": [
+    "Apresentação artística","Apresentação de trabalhos","Contação de História",
+    "Cortejo","Demonstração","Desfile de moda","Exibição audiovisual",
+    "Experiência","Intervenção urbana","Mentoria","Mesa redonda","Minicurso",
+    "Oficina","Pitchs","Revisão de portfólio","Roda de conversa",
+    "Rodada de negócios","Show","Talk Show","Visitas/ percursos guiados","Workshop"
+  ],
+  "01:45": ["Mesa redonda","Oficina","Roda de conversa"],
+  "02:00": [
+    "Apresentação artística","Apresentação de trabalhos","Atendimentos","Campeonato",
+    "Cortejo","Demonstração","Desfile de moda","Exibição audiovisual",
+    "Experiência","Exposição artística","Intervenção urbana","Mentoria",
+    "Minicurso","Oficina","Pitchs","Revisão de portfólio","Rodada de negócios",
+    "Show","Talk Show","Visitas/ percursos guiados","Workshop"
+  ],
+  "02:30": [
+    "Apresentação artística","Exibição audiovisual","Oficina","Show","Workshop"
+  ],
+  "03:00": [
+    "Apresentação artística","Atendimentos","Campeonato","Exibição audiovisual",
+    "Experiência","Exposição artística","Hackathon","Oficina","Show",
+    "Visitas/ percursos guiados","Workshop"
+  ],
+  "03:30": ["Exibição audiovisual"],
+  "04:00": [
+    "Atendimentos","Campeonato","Exibição audiovisual","Experiência",
+    "Exposição artística","feira","Hackathon","Oficina","Show"
+  ],
+  "05:00": ["Hackathon","Show"],
+  "09:00": ["Hackathon","Intervenção urbana","Mentoria","Oficina","Show"]
+};
 
-   // — Beacon + form submit —
-  const form      = document.getElementById('activityForm');
-  const submitBtn = form.querySelector('button[type="submit"]');
+const durationSelect = document.getElementById('text_mkqrvnnp');
+const durationLabel  = document.getElementById('durationLabel');
 
-  submitBtn.addEventListener('click', () => {
-    // 1) Colete todos os valores do formulário
+fmt.addEventListener('change', () => {
+  // (já existente) showDays/showMax/ageRange...
+  
+  // 1) limpa opções anteriores
+  durationSelect.innerHTML = '<option value="">-- selecione --</option>';
+  
+  // 2) formata valor para comparação
+  const currFmt = fmt.value.trim().toLowerCase();
+  
+  // 3) para cada duração, se o formato atual estiver no mapeamento (comparação sem diferenciar maiúsculas/minúsculas), adiciona option
+Object.entries(durationMapping).forEach(([time, formats]) => {
+  // transforma todos os formatos em lowercase e compara
+  const lowerFormats = formats.map(f => f.trim().toLowerCase());
+  if (lowerFormats.includes(currFmt)) {
+    const opt = document.createElement('option');
+    opt.value = time;
+    opt.textContent = time === '09:00' ? 'Dia todo' : time;
+    durationSelect.appendChild(opt);
+  }
+});
+  
+  // 4) esconde todo o bloco se não houver opções (além do placeholder)
+  durationLabel.classList.toggle('hidden', durationSelect.options.length <= 1);
+});
+
+// dispara uma vez para inicializar o estado corretamente
+fmt.dispatchEvent(new Event('change'));
+  // — Submissão —
+  document.getElementById('activityForm').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    // 1) Cria convidados
+    if (guestsToCreate.length) {
+      await Promise.all(guestsToCreate.map(async g => {
+        const cols = { text_mkqreer2: g.name };
+        if (g.cargo)   cols.text_mkqry55n = g.cargo;
+        if (g.empresa) cols.text_mkqrghw1 = g.empresa;
+        const esc = JSON.stringify(cols).replace(/"/g,'\\"');
+        const q = `
+          mutation {
+            create_item(
+              board_id: ${GUEST_BOARD_ID},
+              item_name: "${g.name.replace(/"/g,'\\"')}",
+              column_values: "${esc}"
+            ) { id }
+          }
+        `;
+        const res = await mondayMutation(q);
+        g.id = res.create_item.id;
+      }));
+      guestsToCreate = [];
+    }
+
+    // 2) Monta atividade
     const title      = document.getElementById('text_mkqrhjas').value.replace(/"/g,'\\"');
-    const fmtValue   = document.getElementById('short_textossh5v4j').value;
+    const fmtValue   = fmt.value;
     const days       = document.getElementById('short_textb7obn15q').value;
     const maxG       = document.getElementById('text_mkqrjadb').value;
     const duration   = document.getElementById('text_mkqrvnnp').value.replace(/"/g,'\\"');
@@ -520,8 +602,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pub        = document.getElementById('text_mkqr6nqa').value;
     const [temaP, subP=''] = document.getElementById('temaPrincipalValue').value.split(' → ');
     const [temaS, subS=''] = document.getElementById('temaSecundarioValue').value.split(' → ');
-    const partnerType      = document.getElementById('short_mkqwxtt2').value;
-    let partnerValue;
+    const partnerType      = partnership.value;
+    let   partnerValue;
     switch (partnerType) {
       case 'Curador':      partnerValue = document.getElementById('curador_mkqw6k20').value; break;
       case 'Realizador':   partnerValue = document.getElementById('realizador_mkqw6k20').value; break;
@@ -537,7 +619,6 @@ document.addEventListener('DOMContentLoaded', () => {
       .filter(g => g.id)
       .map(g => ({ linkedPulseId: parseInt(g.id,10) }));
 
-    // 2) Construa o objeto vals para a mutation
     const vals = {
       text_mkqrhjas:      title,
       short_textossh5v4j: fmtValue,
@@ -546,12 +627,13 @@ document.addEventListener('DOMContentLoaded', () => {
       text_mkqrvnnp:      duration,
       long_text_mkqr5e1x: desc,
       text_mkqrqmfw:      extras,
-      text_mkqrrpq3:      restr === 'Sim' ? ageRange : restr,
+      text_mkqrrpq3:      restr==='Sim'? ageRange : restr,
       text_mkqrwawz:      temaP,
       text_mkqrm18v:      subP,
       text_mkqrth67:      temaS,
       text_mkqrfjz3:      subS,
       text_mkqr6nqa:      pub,
+      color_mkqr22e3:     { label:'Caixa de Entrada' },
       text_mkqwxtt2:      partnerType,
       text_mkqw6k20:      partnerValue,
       text_mkqw9854:      cnpj,
@@ -559,10 +641,11 @@ document.addEventListener('DOMContentLoaded', () => {
       text_mkqxrmax:      proponente,
       text_mkqw7x9b:      email,
       text_mkqxwjzj:      telefone,
-      ...(guestIds.length && { board_relation_mkqr6b1t: { linkedPulseIds: guestIds } })
+      ...(guestIds.length && {
+        board_relation_mkqr6b1t: { linkedPulseIds: guestIds }
+      })
     };
 
-    // 3) Serializa vals e constrói a mutation
     const colJson = JSON.stringify(vals)
       .replace(/\\/g,'\\\\')
       .replace(/"/g,'\\"')
@@ -577,20 +660,28 @@ document.addEventListener('DOMContentLoaded', () => {
         ) { id }
       }
     `;
+    try {
+      const resp = await mondayMutation(mutation);
+      alert('Atividade criada! ID: ' + resp.create_item.id);
+      document.getElementById('activityForm').reset();
+      selectedGuests = [];
+      renderSlots();
+      buildTree('temaPrincipalTree','temaPrincipalValue');
+      buildTree('temaSecundarioTree','temaSecundarioValue');
+      fmt.dispatchEvent(new Event('change'));
+      rs.dispatchEvent(new Event('change'));
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao criar atividade. Veja console.');
+    }
+    
 
-    // 4) Envia via Beacon imediatamente
-    const payload = JSON.stringify({ query: mutation });
-    const blob    = new Blob([payload], { type: 'application/json;charset=UTF-8' });
-    navigator.sendBeacon(API_URL, blob);
 
-    // 5) Não chamamos e.preventDefault() — o form vai submeter para confirmation.html
   });
 
-  // Inicializações
   renderSlots();
 });
 </script>
-
 
 
 </body>
