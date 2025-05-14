@@ -235,7 +235,10 @@
       <input type="text" id="text_mkqrrpq3_range" placeholder="ex: 18-25">
     </label>
 
-    <label>Convidados:</label>
+    <label>Participantes:</label>
+    <div id="guestInstruction" class="instruction">
+    Clique no botão <span class="add-icon">+</span> adicionar o nome dos participantes que você pretende convidar para essa atividade
+    </div>
     <div class="guest-slots" id="guestSlots"></div>
 
     
@@ -251,7 +254,7 @@
   <!-- modal de criação de convidado -->
   <div id="newGuestModal" class="modal hidden">
     <div class="content">
-      <h3>Novo Convidado</h3>
+      <h3>Novo Participante</h3>
       <input id="guestNameInput" placeholder="Nome" />
       <input id="guestCargoInput" placeholder="Cargo" />
       <input id="guestEmpresaInput" placeholder="Empresa" />
@@ -287,6 +290,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // — Slots de convidados —
   function renderSlots() {
+    const instr = document.getElementById('guestInstruction');
+    // se não houver convidados, mostra a instrução, senão esconde
+    instr.style.display = selectedGuests.length === 0 ? 'block' : 'none';
     const c = document.getElementById('guestSlots');
     c.innerHTML = '';
     selectedGuests.forEach((g,i) => {
