@@ -23,7 +23,7 @@
   </style>
 </head>
 <body>
-  <h1>Noaa atividade</h1>
+  <h1>Nova atividade</h1>
   <form id="activityForm">
     <label>
       Qual tipo de parceria:
@@ -443,6 +443,34 @@ document.addEventListener('DOMContentLoaded', () => {
   sponsorSelect.addEventListener('change', togglePartnerFields);
   togglePartnerFields();
 
+
+  function maskCNPJ(value) {
+  value = value.replace(/\D/g, "");
+  value = value.replace(/^(\d{2})(\d)/, "$1.$2");
+  value = value.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+  value = value.replace(/\.(\d{3})(\d)/, ".$1/$2");
+  value = value.replace(/(\d{4})(\d)/, "$1-$2");
+  return value;
+}
+function maskPhone(value) {
+  value = value.replace(/\D/g, "");
+  // DDD
+  value = value.replace(/^(\d{2})(\d)/, "($1) $2");
+  // Se tiver 5 dígitos no bloco, insere hífen após o quinto
+  value = value.replace(/(\d{5})(\d)/, "$1-$2");
+  // Limita tamanho máximo
+  return value.slice(0, 15);
+}
+
+const cnpjInput   = document.getElementById('text_mkqw9854');
+const phoneInput  = document.getElementById('tel_mkqxwjzj');
+
+cnpjInput.addEventListener('input', e => {
+  e.target.value = maskCNPJ(e.target.value);
+});
+phoneInput.addEventListener('input', e => {
+  e.target.value = maskPhone(e.target.value);
+});
   // — Submissão —
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
