@@ -303,3 +303,19 @@ button[type="submit"]:active {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
+.instruction {
+    font-size: .9rem;
+    color: #555;
+    margin-top: -.5rem;
+    margin-bottom: .5rem;
+  }
+  .add-icon {
+    display: inline-block;
+    background: #00FF7F;
+    color: #fff;
+    padding: 0 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    line-height: 1;
+  }
