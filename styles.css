@@ -18,7 +18,7 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, sans-serif;
-  background-color: var(--background-color);
+   background-image: url('fundo.webp');
   color: var(--font-color);
   display: flex;
   flex-direction: column; /* empilha título e container */
@@ -26,6 +26,14 @@ body {
   align-items: center;
   min-height: 100vh;
   padding: 2rem;
+}
+
+body {
+  /* Ajuste aqui a URL da sua imagem */
+ 
+  background-size: cover;        /* preenche todo o container */
+  background-position: center;   /* centraliza a imagem */
+  background-repeat: no-repeat;  /* não repete em mosaico */
 }
 
 form {
