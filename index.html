@@ -245,7 +245,7 @@
 
     <label>
       Informações extras:
-      <textarea id="text_mkqrqmfw" rows="2" maxlength="700" placeholder="insira informações que julgue necessário a coordenação do evento ter conhecimento"></textarea>
+      <textarea id="text_mkqrqmfw" rows="2" maxlength="700" placeholder="Insira informações que julgue necessário a coordenação do evento ter conhecimento"></textarea>
       <div class="char-counter" id="extrasCounter">0/700</div>
     </label>
     <button type="submit">Criar Atividade</button>
@@ -573,6 +573,10 @@ let isSending = false;
 
 formElement.addEventListener('submit', async function(event) {
   event.preventDefault();
+  if (selectedGuests.length === 0) {
+    alert('Por favor, adicione pelo menos um convidado antes de criar a atividade.');
+    return; // sai sem enviar
+  }
 
   // Evita envios duplicados
   if (isSending) return;
