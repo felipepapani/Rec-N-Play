@@ -23,7 +23,7 @@
   </style>
 </head>
 <body>
-  <h1>Noaa atividade</h1>
+  <h1>Nova atividade</h1>
   <form id="activityForm">
     <label>
       Qual tipo de parceria:
@@ -639,7 +639,8 @@ formElement.addEventListener('submit', async function(event) {
     const guestIds = selectedGuests
       .filter(g => g.id)
       .map(g => ({ linkedPulseId: parseInt(g.id, 10) }));
-
+    const createdAt = new Date()
+      .toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }); // ou use toISOString()
     // 3) Monta o objeto column_values
     const columnValues = {
       text_mkqrhjas:      activityTitle,
@@ -662,6 +663,7 @@ formElement.addEventListener('submit', async function(event) {
       text_mkqxrmax:      proponente,
       text_mkqw7x9b:      email,
       text_mkqxwjzj:      telefone,
+      text_mkqwvgar: createdAt,
       ...(guestIds.length && { board_relation_mkqr6b1t: { linkedPulseIds: guestIds } })
     };
 
