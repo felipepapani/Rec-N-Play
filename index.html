@@ -23,7 +23,7 @@
   </style>
 </head>
 <body>
-  <h1>Nova atividade</h1>
+  <h1>Noaa atividade</h1>
   <form id="activityForm">
     <label>
       Qual tipo de parceria:
@@ -167,22 +167,10 @@
       </select>
     </label>
 
-    <label>
+   <label id="durationLabel" class="hidden">
       Duração:
       <select id="text_mkqrvnnp">
         <option value="">-- selecione --</option>
-        <option value="00:30">00:30</option>
-        <option value="00:45">00:45</option>
-        <option value="01:00">01:00</option>
-        <option value="01:15">01:15</option>
-        <option value="01:30">01:30</option>
-        <option value="01:45">01:45</option>
-        <option value="02:00">02:00</option>
-        <option value="02:30">02:30</option>
-        <option value="03:00">03:00</option>
-        <option value="03:30">03:30</option>
-        <option value="04:00">04:00</option>
-        <option value="05:00">05:00</option>
       </select>
     </label>
 
@@ -485,6 +473,95 @@ cnpjInput.addEventListener('input', e => {
 phoneInput.addEventListener('input', e => {
   e.target.value = maskPhone(e.target.value);
 });
+
+
+  const durationMapping = {
+  "00:30": [
+    "Apresentação artística",
+    "Apresentação de trabalhos",
+    "Contação de História",
+    "Demonstração",
+    "Intervenção urbana",
+    "Rodada de negócios"
+  ],
+  "00:45": [
+    "Apresentação artística",
+    "Apresentação de trabalhos",
+    "Contação de História",
+    "Palestra",
+    "Rodada de negócios",
+    "Visitas/ percursos guiados"
+  ],
+  "01:00": [
+    "Apresentação artística","Apresentação de trabalhos","Atendimentos","Campeonato",
+    "Contação de História","Cortejo","Demonstração","Desfile de moda",
+    "Exibição audiovisual","Experiência","Exposição artística","Intervenção urbana",
+    "Mentoria","Mesa redonda","Minicurso","Oficina","Palestra","Pitchs",
+    "Revisão de portfólio","Roda de conversa","Rodada de negócios",
+    "Show","Talk Show","Visitas/ percursos guiados","Workshop"
+  ],
+  "01:15": ["Mesa redonda","Oficina","Roda de conversa"],
+  "01:30": [
+    "Apresentação artística","Apresentação de trabalhos","Contação de História",
+    "Cortejo","Demonstração","Desfile de moda","Exibição audiovisual",
+    "Experiência","Intervenção urbana","Mentoria","Mesa redonda","Minicurso",
+    "Oficina","Pitchs","Revisão de portfólio","Roda de conversa",
+    "Rodada de negócios","Show","Talk Show","Visitas/ percursos guiados","Workshop"
+  ],
+  "01:45": ["Mesa redonda","Oficina","Roda de conversa"],
+  "02:00": [
+    "Apresentação artística","Apresentação de trabalhos","Atendimentos","Campeonato",
+    "Cortejo","Demonstração","Desfile de moda","Exibição audiovisual",
+    "Experiência","Exposição artística","Intervenção urbana","Mentoria",
+    "Minicurso","Oficina","Pitchs","Revisão de portfólio","Rodada de negócios",
+    "Show","Talk Show","Visitas/ percursos guiados","Workshop"
+  ],
+  "02:30": [
+    "Apresentação artística","Exibição audiovisual","Oficina","Show","Workshop"
+  ],
+  "03:00": [
+    "Apresentação artística","Atendimentos","Campeonato","Exibição audiovisual",
+    "Experiência","Exposição artística","Hackathon","Oficina","Show",
+    "Visitas/ percursos guiados","Workshop"
+  ],
+  "03:30": ["Exibição audiovisual"],
+  "04:00": [
+    "Atendimentos","Campeonato","Exibição audiovisual","Experiência",
+    "Exposição artística","feira","Hackathon","Oficina","Show"
+  ],
+  "05:00": ["Hackathon","Show"],
+  "09:00": ["Hackathon","Intervenção urbana","Mentoria","Oficina","Show"]
+};
+
+const durationSelect = document.getElementById('text_mkqrvnnp');
+const durationLabel  = document.getElementById('durationLabel');
+
+fmt.addEventListener('change', () => {
+  // (já existente) showDays/showMax/ageRange...
+  
+  // 1) limpa opções anteriores
+  durationSelect.innerHTML = '<option value="">-- selecione --</option>';
+  
+  // 2) formata valor para comparação
+  const currFmt = fmt.value.trim().toLowerCase();
+  
+  // 3) para cada duração, se o formato atual estiver no mapeamento, adiciona option
+  Object.entries(durationMapping).forEach(([time, formats]) => {
+    if (formats.includes(currFmt)) {
+      const opt = document.createElement('option');
+      opt.value = time;
+      // exibe "Dia todo" para 09:00, senão mostra o horário
+      opt.textContent = time === '09:00' ? 'Dia todo' : time;
+      durationSelect.appendChild(opt);
+    }
+  });
+  
+  // 4) esconde todo o bloco se não houver opções (além do placeholder)
+  durationLabel.classList.toggle('hidden', durationSelect.options.length <= 1);
+});
+
+// dispara uma vez para inicializar o estado corretamente
+fmt.dispatchEvent(new Event('change'));
   // — Submissão —
   document.getElementById('activityForm').addEventListener('submit', async e => {
     e.preventDefault();
