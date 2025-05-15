@@ -1,5 +1,4 @@
 :root {
-  /* Cores do REC n Play 2025 */
   --primary-color: #8A2BE2;
   --secondary-color: #00FF7F;
   --background-color: #f5f7fa;
@@ -9,32 +8,39 @@
   --transition-duration: 0.3s;
 }
 
-/* Reset global */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+html {
+  height: 100%;
+}
+
 body {
+  position: relative;
+  min-height: 100vh;
   font-family: 'Segoe UI', Tahoma, sans-serif;
-  /* Cor de fundo de fallback */
   background-color: var(--background-color);
-
-  /* Imagem de fundo única e responsiva */
-  background-image: url('fundo.webp');
-  background-repeat: no-repeat;       /* não repete */
-  background-position: center center; /* centraliza */
-  background-size: cover;             /* cobre toda a área mantendo proporção */
-
-  /* Layout flex para centrar o conteúdo */
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-
-  min-height: 100vh;
   padding: 2rem;
+  overflow-x: hidden;
+}
+
+/* Overlay do fundo com imagem suavizada */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('teste.webp') no-repeat center/cover;
+  opacity: 1;
+  z-index: -1;
 }
 
 form {
@@ -43,27 +49,39 @@ form {
   border-radius: var(--border-radius);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: grid;
-  grid-gap: 1.5rem;
+  gap: 1.5rem;
   width: 100%;
   max-width: 800px;
 }
 
-h1 {
-  font-size: 1.75rem;
+h1, h2, h4 {
   text-align: center;
   color: var(--primary-color);
+}
+
+h1 {
+  font-size: 1.75rem;
   margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+h4 {
+  font-size: 0.95rem;
+  color: var(--font-color);
 }
 
 label {
   display: flex;
   flex-direction: column;
   font-size: 0.95rem;
+  color: var(--font-color);
 }
 
-input,
-textarea,
-select {
+input, textarea, select {
   background-color: var(--input-background);
   border: 1px solid #ccd0d5;
   border-radius: var(--border-radius);
@@ -72,9 +90,7 @@ select {
   transition: border-color var(--transition-duration), box-shadow var(--transition-duration);
 }
 
-input:focus,
-textarea:focus,
-select:focus {
+input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.2);
@@ -109,15 +125,10 @@ button[type="submit"]:hover {
   transform: translateY(-2px);
 }
 
-button[type="submit"]:active {
-  transform: translateY(0);
-}
-
 .hidden {
   display: none !important;
 }
 
-/* Slots de convidados */
 .guest-slots {
   display: flex;
   flex-wrap: wrap;
@@ -133,21 +144,17 @@ button[type="submit"]:active {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  position: relative;
 }
 
 .guest-slot .remove {
   background: transparent;
   border: none;
   color: #fff;
-  font-size: 1rem;
   cursor: pointer;
 }
 
-/* Botão de adicionar convidado */
 #addGuestBtn {
   background-color: var(--secondary-color);
-  color: #333;
   border: none;
   width: 2rem;
   height: 2rem;
@@ -159,22 +166,14 @@ button[type="submit"]:active {
   cursor: pointer;
 }
 
-/* Modal */
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-}
-
-.modal.hidden {
-  display: none;
 }
 
 .modal .content {
@@ -184,53 +183,30 @@ button[type="submit"]:active {
   width: 90%;
   max-width: 400px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  text-align: left;
 }
 
-.modal .content h3 {
-  margin-top: 0;
-}
-
-.modal .content input {
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ccd0d5;
-  border-radius: var(--border-radius);
-}
-
-.modal .content ul {
-  list-style: none;
-  padding: 0;
-  max-height: 200px;
-  overflow-y: auto;
-  margin-bottom: 1rem;
-}
-
-.modal .content ul li {
-  padding: 0.5rem;
-  cursor: pointer;
-  border-bottom: 1px solid #ddd;
-}
-
-.modal .content ul li:hover {
+.modal .content button {
   background-color: var(--primary-color);
   color: #fff;
+  padding: 0.6rem;
+  border-radius: var(--border-radius);
+  border: none;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background-color var(--transition-duration), transform var(--transition-duration);
 }
 
-/* Cascata Tema → Subtema */
-#temaPrincipalTree,
-#temaSecundarioTree {
+.modal .content button:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-1px);
+}
+
+#temaPrincipalTree, #temaSecundarioTree {
   border: 1px solid #ccd0d5;
   border-radius: var(--border-radius);
   padding: 0.5rem;
   max-height: 200px;
   overflow-y: auto;
-}
-
-#temaPrincipalTree details,
-#temaSecundarioTree details {
-  margin-bottom: 0.5rem;
 }
 
 #temaPrincipalTree summary,
@@ -245,7 +221,7 @@ button[type="submit"]:active {
   padding: 0.25rem 0.5rem;
   cursor: pointer;
   border-radius: var(--border-radius);
-  transition: background-color var(--transition-duration);
+  transition: background-color var(--transition-duration), color var(--transition-duration);
 }
 
 #temaPrincipalTree .subtema-item:hover,
@@ -254,17 +230,29 @@ button[type="submit"]:active {
   color: #fff;
 }
 
+/* Seleção fixa */
 #temaPrincipalTree .subtema-item[style*="font-weight: bold"],
 #temaSecundarioTree .subtema-item[style*="font-weight: bold"] {
-  background-color: var(--secondary-color);
-  color: #333;
+  background-color: var(--primary-color);
+  color: #fff;
 }
 
-/* Responsivo */
+.instruction {
+  font-size: .9rem;
+  color: #555;
+}
+
+.add-icon {
+  background: var(--secondary-color);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
 @media (max-width: 900px) {
   form {
     padding: 1.5rem;
-    grid-gap: 1rem;
+    gap: 1rem;
   }
 }
 
@@ -272,59 +260,8 @@ button[type="submit"]:active {
   body {
     padding: 1rem;
   }
+
   form {
     padding: 1rem;
   }
 }
-
-
-/* ————— Botões do Modal ————— */
-.modal .content button {
-  width: 100%;
-  padding: 0.6rem 1rem;
-  margin-top: 0.75rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: var(--border-radius);
-  border: none;
-  cursor: pointer;
-  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-/* Botão de salvar convidado */
-#saveGuestBtn {
-  background-color: var(--primary-color);
-  color: #fff;
-}
-#saveGuestBtn:hover {
-  background-color: #7a26cc; /* tom levemente mais escuro */
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Botão de fechar modal */
-#closeGuestModalBtn {
-  background-color: var(--primary-color);
-  color: #fff;
-}
-#closeGuestModalBtn:hover {
-  background-color: #7a26cc; /* tom levemente mais escuro */
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.instruction {
-    font-size: .9rem;
-    color: #555;
-    margin-top: -.5rem;
-    margin-bottom: .5rem;
-  }
-  .add-icon {
-    display: inline-block;
-    background: #00FF7F;
-    color: #fff;
-    padding: 0 6px;
-    border-radius: 4px;
-    font-weight: bold;
-    line-height: 1;
-  }
