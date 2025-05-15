@@ -144,13 +144,16 @@ button[type="submit"]:hover {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-top: -1rem;
+  margin-bottom:1rem;
 }
 
 .guest-slot .remove {
-  background: transparent;
+  background: #00000000;
   border: none;
   color: #fff;
   cursor: pointer;
+  
 }
 
 #addGuestBtn {
@@ -164,6 +167,8 @@ button[type="submit"]:hover {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  margin-top: -0.5rem;
+  margin-bottom:1rem;
 }
 
 .modal {
