@@ -419,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
         rs     = document.getElementById('text_mkqrrpq3'),
         ageL   = document.getElementById('ageRangeLabel'),
         showDays = new Set(['Atendimentos','Mentoria','Pitchs','Rodada de negócios','Oficina','Minicurso','Hackathon','Intervenção urbana','Demonstração','Experiência','Visitas/ percursos guiados','Campeonato','Exposição artística','Feira']),
-        showMax  = new Set(['Oficina','Workshop','MiniCurso','Hackaton','Visitas','Campeonato,Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
+        showMax  = new Set(['Oficina','Workshop','Minicurso','Hackathon','Visitas/ percursos guiados','Campeonato','Mentoria','Pitchs','Revisão de portfólio','Rodada de negócios']);
   fmt.addEventListener('change', () => {
     daysL.classList.toggle('hidden', !showDays.has(fmt.value));
     maxL.classList.toggle('hidden', !showMax.has(fmt.value));
